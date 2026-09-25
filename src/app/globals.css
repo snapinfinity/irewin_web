@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* IREWIN brand tokens (from the brand guidelines) */
+@theme {
+  --color-brand-50: #e6f6ef;
+  --color-brand-100: #c9ebdb;
+  --color-brand-500: #14b8a6;
+  --color-brand-600: #0f766e;
+  --color-brand-700: #0b5f58;
+  --color-accent: #22c55e;
+  --color-accent-soft: #86efac;
+  --color-dark: #0a3b34;
+  --color-dark-2: #0f4a42;
+  --color-on-dark: #b9d6ce;
+  --color-ink: #1f2937;
+  --color-ink-2: #374151;
+  --color-muted: #6b7280;
+  --color-line: #e5e7eb;
+  --color-surface: #f8fafc;
+  --color-gold: #f5b83d;
+  --color-gold-soft: #fff4d6;
+
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+
+  --shadow-card: 0 10px 28px rgba(15, 118, 110, 0.12);
+  --shadow-float: 0 16px 40px rgba(0, 0, 0, 0.28);
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-surface text-ink font-sans antialiased;
+  }
+  h1,
+  h2,
+  h3,
+  h4 {
+    @apply font-display;
+  }
+  :focus-visible {
+    outline: 3px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@utility container-page {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  @variant sm {
+    padding-inline: 1.5rem;
+  }
+  @variant lg {
+    padding-inline: 2rem;
+  }
+}
