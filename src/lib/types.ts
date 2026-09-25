@@ -69,11 +69,38 @@ export interface Plan {
 
 export interface Membership {
   planId: PlanId;
+  status: "active" | "cancelled";
   startedAt: string;
   expiresAt: string;
+  /** "test" until real payments are connected. */
+  source: string;
 }
 
 export interface SessionUser {
+  uid: string;
   name: string;
   email: string;
+  photoURL: string | null;
+}
+
+/** The signed-in user's document in the `users` Firestore collection (ISO dates). */
+export interface UserProfile {
+  uid: string;
+  email: string;
+  emailVerified: boolean;
+  displayName: string;
+  firstName: string;
+  lastName: string;
+  photoURL: string | null;
+  phoneNumber: string | null;
+  provider: string;
+  locale: string | null;
+  timeZone: string | null;
+  marketingOptIn: boolean;
+  marketingOptInAt: string | null;
+  membership: Membership | null;
+  createdAt: string | null;
+  lastLoginAt: string | null;
+  loginCount: number;
+  signupSource: string;
 }

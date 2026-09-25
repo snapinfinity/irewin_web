@@ -7,7 +7,8 @@ import {
   getServerSnapshot,
   getSnapshot,
   isMembershipActive,
-  signIn,
+  setMarketingOptIn,
+  signInWithGoogle,
   signOut,
   subscribe,
 } from "@/lib/auth/session-store";
@@ -18,14 +19,16 @@ export function useSession() {
   const user = state?.user ?? null;
   const membership = state?.membership ?? null;
   return {
-    /** false until the browser session has been read (avoids flashing locked/unlocked UI). */
+    /** false until Firebase has reported whether someone is signed in (avoids flashing locked/unlocked UI). */
     ready,
     user,
+    profile: state?.profile ?? null,
     membership,
     isLoggedIn: !!user,
     isPremium: !!user && isMembershipActive(membership),
-    signIn,
+    signInWithGoogle,
     signOut,
+    setMarketingOptIn,
     activateMembership,
     cancelMembership,
   };

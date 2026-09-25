@@ -14,7 +14,7 @@ export function PremiumTeaser() {
       ? { href: "/jobs", label: "Browse all jobs" }
       : isLoggedIn
         ? { href: "/premium", label: "See Premium plans" }
-        : { href: "/login?mode=register&next=/premium", label: "Create free account" };
+        : { href: "/login?next=/premium", label: "Sign in with Google" };
 
   return (
     <section className="bg-white py-16 sm:py-24">
@@ -41,11 +41,6 @@ export function PremiumTeaser() {
                   className="rounded-xl bg-accent px-6 py-3.5 font-display font-semibold text-dark hover:bg-accent-soft"
                 >
                   {cta.label}
-                </Link>
-              )}
-              {ready && !isLoggedIn && (
-                <Link href="/login?next=/premium" className="rounded-xl border border-white/30 px-6 py-3.5 font-semibold text-white hover:bg-white/10">
-                  I already have an account
                 </Link>
               )}
             </div>

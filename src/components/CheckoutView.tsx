@@ -19,6 +19,7 @@ export function CheckoutView() {
   const router = useRouter();
   const { user, membership, isPremium, activateMembership } = useSession();
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const plan = getPlan(params.get("plan"));
 
   if (!plan) {
@@ -35,11 +36,17 @@ export function CheckoutView() {
   const start = isPremium && membership ? new Date(membership.expiresAt) : new Date();
   const until = addMonths(start, plan.months);
 
-  function activate() {
+  async function activate() {
     if (!plan) return;
     setBusy(true);
-    activateMembership(plan.id);
-    router.push("/account?activated=1");
+    try {
+      await activateMembership(plan.id);
+      router.push("/account?activated=1");
+    } catch (err) {
+      console.error(err);
+      setBusy(false);
+      setError("Couldn't activate Premium. Please try again.");
+    }
   }
 
   return (
@@ -99,6 +106,11 @@ export function CheckoutView() {
         >
           {busy ? "Activating…" : "Activate Premium (test)"}
         </button>
+        {error && (
+          <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+            {error}
+          </p>
+        )}
       </aside>
     </div>
   );

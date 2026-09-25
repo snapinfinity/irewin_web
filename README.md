@@ -24,21 +24,23 @@ Pages refresh every 60 seconds, so a job published in the dashboard appears on t
 
 To load test data into the dashboard, run `npm run seed:sample` in the **irewin_dashboard** folder (`npm run seed:sample -- --remove` deletes it again).
 
-## How access works (test mode)
+## Accounts and Premium
 
 | Visitor | Sees |
 | --- | --- |
-| Not logged in | Categories, the 3 newest jobs (no apply button), and every other job as a blurred "Premium job" card |
-| Logged in, no Premium | Same as above, plus the Premium plans page |
+| Not signed in | Categories, the 3 newest jobs (no apply button), and every other job as a blurred "Premium job" card |
+| Signed in, no Premium | Same as above, plus the Premium plans page |
 | Premium member | Every job, full details and the **Apply on company site** button |
 
-Flow: **Log in / Create account → /premium (4 plans) → /checkout → Activate Premium (test) → /account**.
+- **Sign-in is Google only** (Firebase Auth, same project as the dashboard).
+- On first sign-in the site creates `users/{uid}` with the full profile: uid, email, emailVerified, displayName, firstName, lastName, photoURL, phoneNumber, provider, locale, timeZone, marketingOptIn (+ date), membership, signupSource, createdAt, lastLoginAt, loginCount. If the account already exists, its saved details are kept and only the login info is refreshed.
+- **Email promotions:** people are only added to the mailing list if they tick the opt-in box (unticked by default). They can change it any time on /account. Use `marketingOptIn == true` when exporting emails.
+- **Premium is test mode:** "Activate Premium (test)" on /checkout writes `membership` to the user's doc with no payment. "Remove Premium (test)" on /account clears it.
 
-Login and Premium are **simulated in `localStorage`** so the whole flow can be tested without a backend:
+### One-time Firebase setup
 
-- Any email + a password of 6+ characters signs you in.
-- "Activate Premium (test)" on /checkout unlocks Premium straight away. No payment is taken.
-- "Remove Premium (test)" on /account resets it.
+1. Firebase Console → Authentication → Settings → **Authorized domains** → add your Vercel domain (e.g. `irewin-web-cwc6.vercel.app`) and any custom domain.
+2. Deploy the updated rules from the dashboard folder: `npx firebase-tools deploy --only firestore:rules`.
 
 ## Where things live
 
@@ -48,12 +50,12 @@ Login and Premium are **simulated in `localStorage`** so the whole flow can be t
 | `src/lib/firebase.ts` | Firebase setup (reads `.env.local`) |
 | `src/lib/data/plans.ts` | The 4 Premium plans (1, 3, 6 months, 1 year). **Prices are placeholders.** |
 | `src/lib/constants.ts` | `FREE_JOB_PREVIEW_COUNT` (3) and labels |
-| `src/lib/auth/session-store.ts` | Test login + membership store. Swap for real auth and payments here |
+| `src/lib/auth/session-store.ts` | Google sign-in, `users` collection, membership (test mode) |
+| `src/lib/firebase-client.ts` | Browser Firebase (Auth + the user's own doc) |
 | `src/components/GatedJobGrid.tsx` | Decides what's shown vs blurred |
 | `public/images/hero-dublin.svg` | Hero illustration |
 
 ## Before going live
 
-1. **Auth:** replace `signIn` / `signOut` in `session-store.ts` with real authentication (e.g. Firebase Auth).
-2. **Payments:** in `CheckoutView.tsx`, start the payment provider's checkout and only set the membership after the provider confirms payment. Do this on the server (webhook), not in the browser.
-3. **Real locking:** published jobs are publicly readable in Firestore today, so locked jobs are only hidden visually. Send full job details (description, apply link, etc.) only to logged-in Premium members, using server-side checks and Firestore security rules.
+1. **Payments:** in `CheckoutView.tsx`, start the payment provider's checkout and only set the membership after the provider confirms payment. Do this on the server (webhook), not in the browser.
+2. **Real locking:** published jobs are publicly readable in Firestore today, so locked jobs are only hidden visually. Send full job details (description, apply link, etc.) only to logged-in Premium members, using server-side checks and Firestore security rules.

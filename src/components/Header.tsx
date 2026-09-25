@@ -25,8 +25,8 @@ export function Header() {
 
   const isActive = (href: string) => (href === "/" ? pathname === "/" : pathname.startsWith(href));
 
-  function handleSignOut() {
-    signOut();
+  async function handleSignOut() {
+    await signOut();
     setOpenPath(null);
     router.push("/");
   }
@@ -51,9 +51,14 @@ export function Header() {
         href="/account"
         className="inline-flex items-center gap-2 rounded-xl px-2 py-2 text-sm font-medium text-white hover:bg-white/10"
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 font-display font-bold">
-          {user.name.charAt(0).toUpperCase()}
-        </span>
+        {user.photoURL ? (
+          // eslint-disable-next-line @next/next/no-img-element -- Google profile photo
+          <img src={user.photoURL} alt="" referrerPolicy="no-referrer" className="h-8 w-8 rounded-full object-cover" />
+        ) : (
+          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-white/15 font-display font-bold">
+            {user.name.charAt(0).toUpperCase()}
+          </span>
+        )}
         <span className="hidden xl:inline">{user.name.split(" ")[0]}</span>
       </Link>
     </div>
@@ -63,7 +68,7 @@ export function Header() {
         Log in
       </Link>
       <Link
-        href="/login?mode=register&next=/premium"
+        href="/login?next=/premium"
         className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 font-display text-sm font-semibold text-dark hover:bg-accent-soft"
       >
         <Crown className="h-4 w-4" /> Get Premium
@@ -144,7 +149,7 @@ export function Header() {
                     Log in
                   </Link>
                   <Link
-                    href="/login?mode=register&next=/premium"
+                    href="/login?next=/premium"
                     className="rounded-xl bg-accent px-4 py-3 text-center font-display font-semibold text-dark"
                   >
                     Get Premium
