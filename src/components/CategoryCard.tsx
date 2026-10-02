@@ -1,10 +1,9 @@
 import Link from "next/link";
 import { ArrowRight, ChevronRight } from "lucide-react";
-import { Badge } from "@/components/Badge";
 import { CategoryIcon } from "@/components/CategoryIcon";
 import type { Category } from "@/lib/types";
 
-/** Compact card for the home page: whole card links to the category's jobs. */
+/** Compact card for the home page: whole card links to the category's jobs (no subcategories). */
 export function CategoryCard({ category, count }: { category: Category; count: number }) {
   return (
     <Link
@@ -20,13 +19,6 @@ export function CategoryCard({ category, count }: { category: Category; count: n
         </span>
       </div>
       <h3 className="text-lg font-semibold text-ink group-hover:text-brand-600">{category.name}</h3>
-      <div className="flex flex-wrap gap-1.5">
-        {category.subcategories.slice(0, 3).map((s) => (
-          <Badge key={s.slug} tone="gray" className="h-6 border border-line bg-white px-2.5 text-xs">
-            {s.name}
-          </Badge>
-        ))}
-      </div>
     </Link>
   );
 }

@@ -5,9 +5,12 @@ import { formatMoney } from "@/lib/format";
 import { monthlyPrice, savingsPercent } from "@/lib/data/plans";
 import type { Plan } from "@/lib/types";
 
-export function PlanCard({ plan, current = false }: { plan: Plan; current?: boolean }) {
+export function PlanCard({ plan, current = false, loggedIn = true }: { plan: Plan; current?: boolean; loggedIn?: boolean }) {
   const featured = plan.badge === "Most popular";
   const saving = savingsPercent(plan);
+  const checkout = `/checkout?plan=${plan.id}`;
+  // Not signed in yet → log in first, then land on checkout with this plan.
+  const href = loggedIn ? checkout : `/login?next=${encodeURIComponent(checkout)}`;
   return (
     <div
       className={clsx(
@@ -45,7 +48,7 @@ export function PlanCard({ plan, current = false }: { plan: Plan; current?: bool
         )}
       </ul>
       <Link
-        href={`/checkout?plan=${plan.id}`}
+        href={href}
         className={clsx(
           "mt-auto flex h-12 items-center justify-center rounded-xl font-display font-semibold",
           featured ? "bg-brand-600 text-white hover:bg-brand-700" : "border-2 border-brand-600 text-brand-600 hover:bg-brand-50",

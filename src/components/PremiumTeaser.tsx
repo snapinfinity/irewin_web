@@ -5,16 +5,14 @@ import { CircleCheck, Crown } from "lucide-react";
 import { useSession } from "@/lib/auth/useSession";
 import { PLANS, PREMIUM_BENEFITS } from "@/lib/data/plans";
 
-/** Home-page pitch for Premium. Prices are only shown on /premium, after login. */
+/** Home-page pitch for Premium. Prices are shown on /premium. */
 export function PremiumTeaser() {
-  const { ready, isLoggedIn, isPremium } = useSession();
+  const { ready, isPremium } = useSession();
   const cta = !ready
     ? null
     : isPremium
       ? { href: "/jobs", label: "Browse all jobs" }
-      : isLoggedIn
-        ? { href: "/premium", label: "See Premium plans" }
-        : { href: "/login?next=/premium", label: "Sign in with Google" };
+      : { href: "/premium", label: "See Premium plans" };
 
   return (
     <section className="bg-white py-16 sm:py-24">
@@ -61,7 +59,7 @@ export function PremiumTeaser() {
               </div>
             ))}
             <p className="col-span-2 text-center text-sm text-on-dark">
-              {isLoggedIn ? "Pick the plan that suits you." : "Log in to see plan prices."}
+              Pick the plan that suits you.
             </p>
           </div>
         </div>

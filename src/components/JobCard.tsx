@@ -49,13 +49,17 @@ export function JobCard({ job, free = false }: { job: Job; free?: boolean }) {
 /**
  * Placeholder for a job the visitor can't see yet. It deliberately renders
  * NO real job data (only shimmer bars), so locked listings can't be read from
- * the page source.
+ * the page source. Clicking it opens the Premium plans.
  */
 export function LockedJobCard({ index = 0 }: { index?: number }) {
   const widths = ["w-3/4", "w-2/3", "w-4/5", "w-3/5"];
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-line bg-white p-5 sm:p-6" aria-hidden="true">
-      <div className="pointer-events-none select-none blur-[3px]">
+    <Link
+      href="/premium"
+      aria-label="Premium job – see Premium plans"
+      className="group relative block overflow-hidden rounded-2xl border border-line bg-white p-5 transition hover:border-brand-600 hover:shadow-card sm:p-6"
+    >
+      <div className="pointer-events-none select-none blur-[3px]" aria-hidden="true">
         <div className="flex items-start gap-3.5">
           <div className="h-[52px] w-[52px] shrink-0 rounded-xl bg-brand-50" />
           <div className="flex-1 space-y-2 pt-1">
@@ -78,10 +82,10 @@ export function LockedJobCard({ index = 0 }: { index?: number }) {
         </div>
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-white/30">
-        <span className="flex items-center gap-2 rounded-full bg-dark px-4 py-2 text-sm font-semibold text-white shadow-lg">
+        <span className="flex items-center gap-2 rounded-full bg-dark px-4 py-2 text-sm font-semibold text-white shadow-lg group-hover:bg-dark-2">
           <Lock className="h-4 w-4 text-accent" /> Premium job
         </span>
       </div>
-    </div>
+    </Link>
   );
 }

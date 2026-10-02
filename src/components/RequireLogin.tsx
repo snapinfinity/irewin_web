@@ -11,7 +11,8 @@ export function RequireLogin({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (ready && !isLoggedIn) router.replace(`/login?next=${encodeURIComponent(pathname)}`);
+    // Keep the query string (e.g. ?plan=…) so the visitor returns to the same place.
+    if (ready && !isLoggedIn) router.replace(`/login?next=${encodeURIComponent(pathname + window.location.search)}`);
   }, [ready, isLoggedIn, pathname, router]);
 
   if (!ready || !isLoggedIn) {

@@ -3,13 +3,13 @@
 import Link from "next/link";
 import { Crown, ShieldCheck } from "lucide-react";
 import { PlanCard } from "@/components/PlanCard";
-import { RequireLogin } from "@/components/RequireLogin";
 import { useSession } from "@/lib/auth/useSession";
 import { PLANS, PREMIUM_BENEFITS, getPlan } from "@/lib/data/plans";
 import { formatDate } from "@/lib/format";
 
-function PremiumContent() {
-  const { user, isPremium, membership } = useSession();
+/** Plans are public; choosing one asks visitors who aren't logged in to sign in first. */
+export default function PremiumPage() {
+  const { user, isLoggedIn, isPremium, membership } = useSession();
   const currentPlan = getPlan(membership?.planId);
   return (
     <>
@@ -19,7 +19,11 @@ function PremiumContent() {
             <Crown className="h-4 w-4" /> IREWIN Premium
           </span>
           <h1 className="max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-5xl">
-            {isPremium ? "You're a Premium member" : `Unlock every job, ${user?.name.split(" ")[0]}`}
+            {isPremium
+              ? "You're a Premium member"
+              : user
+                ? `Unlock every job, ${user.name.split(" ")[0]}`
+                : "Unlock every job in Ireland"}
           </h1>
           <p className="max-w-2xl text-on-dark sm:text-lg">
             {isPremium && membership
@@ -38,7 +42,7 @@ function PremiumContent() {
       <section className="container-page py-12 sm:py-16">
         <div className="grid gap-6 pt-3 sm:grid-cols-2 xl:grid-cols-4">
           {PLANS.map((p) => (
-            <PlanCard key={p.id} plan={p} current={isPremium} />
+            <PlanCard key={p.id} plan={p} current={isPremium} loggedIn={isLoggedIn} />
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-muted">
@@ -49,13 +53,5 @@ function PremiumContent() {
         </p>
       </section>
     </>
-  );
-}
-
-export default function PremiumPage() {
-  return (
-    <RequireLogin>
-      <PremiumContent />
-    </RequireLogin>
   );
 }

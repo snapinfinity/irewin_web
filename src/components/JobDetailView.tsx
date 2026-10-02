@@ -59,7 +59,7 @@ function Row({ icon: Icon, label, value }: { icon: typeof Euro; label: string; v
 }
 
 function ApplyBox({ job }: { job: Job }) {
-  const { ready, isLoggedIn, isPremium } = useSession();
+  const { ready, isPremium } = useSession();
   if (!ready) return <div className="h-14 animate-pulse rounded-xl bg-slate-100" />;
   if (isPremium) {
     return (
@@ -83,10 +83,10 @@ function ApplyBox({ job }: { job: Job }) {
       </p>
       <p className="text-sm text-amber-900/80">Upgrade to see the apply link for this and every other job.</p>
       <Link
-        href={isLoggedIn ? "/premium" : "/login?next=/premium"}
+        href="/premium"
         className="flex items-center justify-center gap-2 rounded-xl bg-dark px-5 py-3 font-display font-semibold text-white hover:bg-dark-2"
       >
-        <Crown className="h-4 w-4 text-gold" /> {isLoggedIn ? "Unlock with Premium" : "Log in to unlock"}
+        <Crown className="h-4 w-4 text-gold" /> Unlock with Premium
       </Link>
     </div>
   );

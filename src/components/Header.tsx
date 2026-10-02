@@ -12,7 +12,6 @@ const NAV = [
   { href: "/", label: "Home" },
   { href: "/jobs", label: "Find Jobs" },
   { href: "/categories", label: "Categories" },
-  { href: "/premium", label: "Premium" },
 ];
 
 export function Header() {
@@ -68,7 +67,7 @@ export function Header() {
         Log in
       </Link>
       <Link
-        href="/login?next=/premium"
+        href="/premium"
         className="inline-flex items-center gap-1.5 rounded-xl bg-accent px-4 py-2.5 font-display text-sm font-semibold text-dark hover:bg-accent-soft"
       >
         <Crown className="h-4 w-4" /> Get Premium
@@ -149,7 +148,7 @@ export function Header() {
                     Log in
                   </Link>
                   <Link
-                    href="/login?next=/premium"
+                    href="/premium"
                     className="rounded-xl bg-accent px-4 py-3 text-center font-display font-semibold text-dark"
                   >
                     Get Premium

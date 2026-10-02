@@ -53,7 +53,11 @@ export function LoginForm() {
         </span>
         <h1 className="mt-4 text-2xl font-bold">Sign in to IREWIN</h1>
         <p className="mt-1.5 text-[15px] text-muted">
-          {next === "/premium" ? "Then choose a Premium plan to unlock every job." : "New here? Your free account is created automatically."}
+          {next.startsWith("/checkout")
+            ? "Sign in to continue with your Premium plan."
+            : next === "/premium"
+              ? "Then choose a Premium plan to unlock every job."
+              : "New here? Your free account is created automatically."}
         </p>
       </div>
 
