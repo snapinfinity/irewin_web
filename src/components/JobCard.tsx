@@ -56,7 +56,7 @@ export function LockedJobCard({ index = 0 }: { index?: number }) {
   return (
     <Link
       href="/premium"
-      aria-label="Premium job – see Premium plans"
+      aria-label="Unlock for more jobs – see Premium plans"
       className="group relative block overflow-hidden rounded-2xl border border-line bg-white p-5 transition hover:border-brand-600 hover:shadow-card sm:p-6"
     >
       <div className="pointer-events-none select-none blur-[3px]" aria-hidden="true">
@@ -83,7 +83,7 @@ export function LockedJobCard({ index = 0 }: { index?: number }) {
       </div>
       <div className="absolute inset-0 flex items-center justify-center bg-white/30">
         <span className="flex items-center gap-2 rounded-full bg-dark px-4 py-2 text-sm font-semibold text-white shadow-lg group-hover:bg-dark-2">
-          <Lock className="h-4 w-4 text-accent" /> Premium job
+          <Lock className="h-4 w-4 text-accent" /> Unlock for more jobs
         </span>
       </div>
     </Link>

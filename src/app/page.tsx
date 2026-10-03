@@ -1,22 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ChevronRight, Crown, House, MapPin, ShieldCheck, UserPlus } from "lucide-react";
+import { ChevronRight, Crown, ShieldCheck, UserPlus } from "lucide-react";
 import { CategoryCard } from "@/components/CategoryCard";
 import { GatedJobGrid } from "@/components/GatedJobGrid";
 import { PremiumTeaser } from "@/components/PremiumTeaser";
-import { SearchBar } from "@/components/SearchBar";
 import { SectionHead } from "@/components/SectionHead";
 import { getCategories } from "@/lib/data/categories";
-import { countByCategory, getFreeJobIds, getLocations, getPublishedJobs } from "@/lib/data/jobs";
-
-const QUICK = [
-  { label: "Remote", href: "/jobs?workMode=remote" },
-  { label: "Hybrid", href: "/jobs?workMode=hybrid" },
-  { label: "Full-time", href: "/jobs?employmentType=full-time" },
-  { label: "Part-time", href: "/jobs?employmentType=part-time" },
-  { label: "Contract", href: "/jobs?employmentType=contract" },
-  { label: "Internship", href: "/jobs?employmentType=internship" },
-];
+import { countByCategory, getFreeJobIds, getPublishedJobs } from "@/lib/data/jobs";
 
 const STEPS = [
   { icon: UserPlus, title: "Create a free account", text: "Sign up in seconds with your email." },
@@ -29,9 +19,8 @@ export const revalidate = 60;
 export default async function HomePage() {
   const [jobs, categories] = await Promise.all([getPublishedJobs(), getCategories()]);
   const counts = countByCategory(jobs);
-  const locations = getLocations(jobs);
   // Busiest categories first on the home page.
-  const topCategories = [...categories].sort((a, b) => (counts[b.slug] ?? 0) - (counts[a.slug] ?? 0)).slice(0, 8);
+  const topCategories = [...categories].sort((a, b) => (counts[b.slug] ?? 0) - (counts[a.slug] ?? 0)).slice(0, 4);
   return (
     <>
       {/* Hero */}
@@ -68,38 +57,20 @@ export default async function HomePage() {
 
       <div className="relative bg-dark pb-14">
         <div className="container-page -mt-16 flex flex-col gap-5 sm:-mt-20">
-          <SearchBar locations={locations.map((l) => l.name)} />
-          <div className="flex flex-wrap items-center gap-2">
-            <span className="mr-1 text-sm text-on-dark">Popular:</span>
-            {QUICK.map((q) => (
-              <Link
-                key={q.label}
-                href={q.href}
-                className="inline-flex h-9 items-center rounded-full border border-white/20 bg-white/5 px-4 text-sm font-medium text-white hover:bg-white/15"
-              >
-                {q.label}
-              </Link>
-            ))}
+          {/* Categories */}
+          <div className="flex items-center justify-between gap-4">
+            <span className="text-sm font-semibold uppercase tracking-wider text-on-dark">Browse by category</span>
+            <Link href="/categories" className="flex items-center gap-1 text-sm font-semibold text-accent hover:text-white">
+              All categories <ChevronRight className="h-4 w-4" />
+            </Link>
           </div>
-        </div>
-      </div>
-
-      {/* Categories */}
-      <section className="py-16 sm:py-24">
-        <div className="container-page flex flex-col gap-10">
-          <SectionHead
-            eyebrow="Browse by category"
-            title="Find work in your field"
-            subtitle="Every category has focused subcategories, so you only see the roles that match what you do."
-            link={{ href: "/categories", label: "All categories" }}
-          />
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-4">
             {topCategories.map((c) => (
               <CategoryCard key={c.id} category={c} count={counts[c.slug] ?? 0} />
             ))}
           </div>
         </div>
-      </section>
+      </div>
 
       {/* Latest jobs (3 free, the rest locked) */}
       <section className="bg-white py-16 sm:py-24">
@@ -131,40 +102,6 @@ export default async function HomePage() {
       </section>
 
       <PremiumTeaser />
-
-      {/* Locations */}
-      <section className="py-16 sm:py-24">
-        <div className="container-page flex flex-col gap-10">
-          <SectionHead
-            eyebrow="Jobs by location"
-            title="Work where you want to live"
-            subtitle="From city-centre offices to remote roles you can do from anywhere in Ireland."
-          />
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {locations.slice(0, 6).map(({ name: l, count: n }) => {
-              const Icon = l.startsWith("Remote") ? House : MapPin;
-              return (
-                <Link
-                  key={l}
-                  href={`/jobs?location=${encodeURIComponent(l)}`}
-                  className="group flex items-center gap-4 rounded-2xl border border-line bg-white p-5 transition hover:border-brand-600 hover:shadow-card"
-                >
-                  <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
-                    <Icon className="h-6 w-6" />
-                  </span>
-                  <span className="flex-1">
-                    <span className="block font-display text-lg font-semibold">{l}</span>
-                    <span className="text-sm text-muted">
-                      {n} open job{n === 1 ? "" : "s"}
-                    </span>
-                  </span>
-                  <ChevronRight className="h-5 w-5 text-brand-600 transition group-hover:translate-x-0.5" />
-                </Link>
-              );
-            })}
-          </div>
-        </div>
-      </section>
     </>
   );
 }
