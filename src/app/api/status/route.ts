@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server";
 import { collection, getDocs, limit, query, where } from "firebase/firestore/lite";
 import { getDb, isFirebaseConfigured } from "@/lib/firebase";
+import { PLANS } from "@/lib/data/plans";
+import { isAdminConfigured } from "@/lib/server/firebase-admin";
+import { dodoEnvironment, productIdFor } from "@/lib/server/dodo";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +20,11 @@ export async function GET() {
     NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET: Boolean(process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET),
     NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID: Boolean(process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID),
     NEXT_PUBLIC_FIREBASE_APP_ID: Boolean(process.env.NEXT_PUBLIC_FIREBASE_APP_ID),
+    FIREBASE_ADMIN_CREDENTIALS: isAdminConfigured(),
+    DODO_PAYMENTS_ENVIRONMENT: dodoEnvironment,
+    DODO_PAYMENTS_API_KEY: Boolean(process.env.DODO_PAYMENTS_API_KEY),
+    DODO_PAYMENTS_WEBHOOK_KEY: Boolean(process.env.DODO_PAYMENTS_WEBHOOK_KEY),
+    DODO_PRODUCTS: PLANS.map((p) => `${p.id}:${productIdFor(p.id) ? "set" : "MISSING"}`).join(" "),
   };
 
   if (!isFirebaseConfigured) {

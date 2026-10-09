@@ -1,23 +1,23 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, CreditCard, Crown, FlaskConical } from "lucide-react";
 import { useSession } from "@/lib/auth/useSession";
 import { getPlan, monthlyPrice } from "@/lib/data/plans";
 import { addMonths, formatDate, formatMoney } from "@/lib/format";
 
+const TEST_MODE = process.env.NEXT_PUBLIC_DODO_TEST_MODE !== "false";
+
 /**
- * Checkout. Payment is NOT integrated yet: the button activates the plan
- * directly (test mode). When the payment provider is added, start its
- * checkout here and call `activateMembership` only after the provider confirms
- * payment (ideally from a server webhook, not the browser).
+ * Checkout. "Pay" sends the visitor to Dodo Payments' hosted checkout; they
+ * come back to /checkout/success, and Premium is granted on the server once
+ * Dodo confirms the payment.
  */
 export function CheckoutView() {
   const params = useSearchParams();
-  const router = useRouter();
-  const { user, membership, isPremium, activateMembership } = useSession();
+  const { user, membership, isPremium, startCheckout } = useSession();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const plan = getPlan(params.get("plan"));
@@ -36,16 +36,16 @@ export function CheckoutView() {
   const start = isPremium && membership ? new Date(membership.expiresAt) : new Date();
   const until = addMonths(start, plan.months);
 
-  async function activate() {
+  async function pay() {
     if (!plan) return;
     setBusy(true);
+    setError(null);
     try {
-      await activateMembership(plan.id);
-      router.push("/account?activated=1");
+      await startCheckout(plan.id); // navigates away to Dodo
     } catch (err) {
       console.error(err);
       setBusy(false);
-      setError("Couldn't activate Premium. Please try again.");
+      setError(err instanceof Error ? err.message : "Couldn't start the payment. Please try again.");
     }
   }
 
@@ -60,13 +60,21 @@ export function CheckoutView() {
           <h2 className="flex items-center gap-2 text-lg font-semibold">
             <CreditCard className="h-5 w-5 text-brand-600" /> Payment
           </h2>
-          <div className="flex gap-3 rounded-xl border border-dashed border-amber-300 bg-gold-soft p-4 text-amber-900">
-            <FlaskConical className="h-5 w-5 shrink-0" />
-            <div className="text-sm leading-relaxed">
-              <p className="font-semibold">Test mode — no payment is taken</p>
-              <p>Online payment will be connected here later. For now, activating unlocks Premium straight away so you can test the site.</p>
+          <p className="text-[15px] leading-relaxed text-ink-2">
+            You&apos;ll pay securely on Dodo Payments&apos; checkout page, then come straight back here. Premium unlocks as soon as the payment is confirmed.
+          </p>
+          {TEST_MODE && (
+            <div className="flex gap-3 rounded-xl border border-dashed border-amber-300 bg-gold-soft p-4 text-amber-900">
+              <FlaskConical className="h-5 w-5 shrink-0" />
+              <div className="text-sm leading-relaxed">
+                <p className="font-semibold">Test mode — no real money is taken</p>
+                <p>
+                  Pay with test card <span className="font-mono font-semibold">4242 4242 4242 4242</span>, expiry 06/32, CVC 123.
+                  Use <span className="font-mono font-semibold">4000 0000 0000 0002</span> to try a declined payment.
+                </p>
+              </div>
             </div>
-          </div>
+          )}
           <p className="text-sm text-muted">
             Signed in as <span className="font-medium text-ink">{user?.email}</span>
           </p>
@@ -100,11 +108,11 @@ export function CheckoutView() {
         </dl>
         <button
           type="button"
-          onClick={activate}
+          onClick={pay}
           disabled={busy}
           className="h-12 rounded-xl bg-brand-600 font-display font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
         >
-          {busy ? "Activating…" : "Activate Premium (test)"}
+          {busy ? "Opening secure checkout…" : `Pay ${formatMoney(plan.price, "EUR", 2)}`}
         </button>
         {error && (
           <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">

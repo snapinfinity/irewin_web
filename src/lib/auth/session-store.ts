@@ -13,8 +13,6 @@ import {
   type DocumentData,
 } from "firebase/firestore";
 import { getClientAuth, getClientDb, googleProvider } from "@/lib/firebase-client";
-import { getPlan } from "@/lib/data/plans";
-import { addMonths } from "@/lib/format";
 import type { Membership, PlanId, SessionUser, UserProfile } from "@/lib/types";
 
 /**
@@ -51,6 +49,7 @@ function toMembership(m: DocumentData | null | undefined): Membership | null {
     startedAt: iso(m.startedAt) ?? "",
     expiresAt: iso(m.expiresAt) ?? "",
     source: m.source ?? "test",
+    paymentId: m.paymentId ?? null,
   };
 }
 
@@ -196,28 +195,38 @@ export async function setMarketingOptIn(value: boolean) {
   await updateDoc(doc(getClientDb(), USERS, uid), { marketingOptIn: value, marketingOptInAt: value ? serverTimestamp() : null });
 }
 
-/**
- * TEST MODE: activates Premium straight from the browser. When payments are
- * added, this must move to the server (payment webhook + Admin SDK) and the
- * Firestore rules must stop users writing their own `membership`.
- */
-export async function activateMembership(planId: PlanId) {
-  const plan = getPlan(planId);
-  const uid = getClientAuth().currentUser?.uid;
-  if (!plan || !uid) return;
-  const current = state?.membership ?? null;
-  const now = new Date();
-  // Buying again while active extends from the current expiry date.
-  const from = isMembershipActive(current) ? new Date(current!.expiresAt) : now;
-  await updateDoc(doc(getClientDb(), USERS, uid), {
-    membership: {
-      planId,
-      status: "active",
-      startedAt: Timestamp.fromDate(now),
-      expiresAt: Timestamp.fromDate(addMonths(from, plan.months)),
-      source: "test",
-    },
+/** POSTs to one of our API routes as the signed-in user (Firebase ID token in the Authorization header). */
+async function postAsUser<T>(path: string, body: unknown): Promise<T> {
+  const token = await getClientAuth().currentUser?.getIdToken();
+  if (!token) throw new Error("Please sign in again.");
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+    body: JSON.stringify(body),
   });
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(data.error ?? "Something went wrong. Please try again.");
+  return data as T;
+}
+
+/**
+ * Starts a Dodo Payments checkout for the plan and sends the browser to it.
+ * Premium is only granted on the server once Dodo confirms the payment
+ * (webhook or /api/checkout/confirm) — never from here.
+ */
+export async function startCheckout(planId: PlanId) {
+  const { checkoutUrl } = await postAsUser<{ checkoutUrl: string }>("/api/checkout", { planId });
+  window.location.assign(checkoutUrl);
+}
+
+export type ConfirmResult =
+  | { status: "applied" | "already_applied"; expiresAt: string }
+  | { status: "not_paid"; paymentStatus: string | null }
+  | { status: "ignored"; reason: string };
+
+/** Asks the server to check a returned Dodo payment and apply it if it succeeded. */
+export function confirmPayment(paymentId: string) {
+  return postAsUser<ConfirmResult>("/api/checkout/confirm", { paymentId });
 }
 
 export async function cancelMembership() {

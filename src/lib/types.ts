@@ -72,8 +72,10 @@ export interface Membership {
   status: "active" | "cancelled";
   startedAt: string;
   expiresAt: string;
-  /** "test" until real payments are connected. */
+  /** "dodo_test" / "dodo" when paid through Dodo Payments; "test" for older manually activated memberships. */
   source: string;
+  /** Dodo payment id that granted/extended this membership. */
+  paymentId: string | null;
 }
 
 export interface SessionUser {

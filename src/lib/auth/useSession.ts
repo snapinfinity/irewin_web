@@ -2,14 +2,15 @@
 
 import { useSyncExternalStore } from "react";
 import {
-  activateMembership,
   cancelMembership,
+  confirmPayment,
   getServerSnapshot,
   getSnapshot,
   isMembershipActive,
   setMarketingOptIn,
   signInWithGoogle,
   signOut,
+  startCheckout,
   subscribe,
 } from "@/lib/auth/session-store";
 
@@ -29,7 +30,8 @@ export function useSession() {
     signInWithGoogle,
     signOut,
     setMarketingOptIn,
-    activateMembership,
+    startCheckout,
+    confirmPayment,
     cancelMembership,
   };
 }
