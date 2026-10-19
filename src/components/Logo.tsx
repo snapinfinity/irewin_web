@@ -17,10 +17,19 @@ export function Shamrock({ className }: { className?: string }) {
 
 export function Logo({ dark = true, className }: { dark?: boolean; className?: string }) {
   return (
-    <Link href="/" aria-label="IREWIN home" className={clsx("flex items-center gap-2", className)}>
-      <Shamrock className="h-8 w-8 text-accent" />
-      <span className={clsx("font-display text-2xl font-extrabold tracking-wide", dark ? "text-white" : "text-dark")}>
+    <Link href="/" aria-label="IREWIN Jobs home" className={clsx("flex items-center gap-2", className)}>
+      <Shamrock className="h-8 w-8 shrink-0 text-accent" />
+      <span className={clsx("font-logo text-2xl font-extrabold tracking-[-0.02em]", dark ? "text-white" : "text-dark")}>
         IRE<span className={dark ? "text-accent" : "text-green-600"}>WIN</span>
+      </span>
+      <span
+        aria-hidden="true"
+        className={clsx(
+          "rounded-md px-1.5 py-1 font-logo text-[11px] leading-none font-bold tracking-[0.14em] uppercase",
+          dark ? "bg-accent text-dark" : "bg-dark text-accent",
+        )}
+      >
+        Jobs
       </span>
     </Link>
   );

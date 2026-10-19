@@ -2,7 +2,7 @@ import Link from "next/link";
 import { clsx } from "clsx";
 import { CircleCheck } from "lucide-react";
 import { formatMoney } from "@/lib/format";
-import { monthlyPrice, savingsPercent } from "@/lib/data/plans";
+import { planLength, savingsPercent, weeklyPrice } from "@/lib/data/plans";
 import type { Plan } from "@/lib/types";
 
 export function PlanCard({ plan, current = false, loggedIn = true }: { plan: Plan; current?: boolean; loggedIn?: boolean }) {
@@ -30,16 +30,18 @@ export function PlanCard({ plan, current = false, loggedIn = true }: { plan: Pla
       )}
       <div>
         <h3 className="text-xl font-bold">{plan.name}</h3>
-        <p className="mt-1 text-sm text-muted">{saving > 0 ? `Save ${saving}% vs monthly` : "Flexible, short term"}</p>
+        <p className="mt-1 text-sm text-muted">{saving > 0 ? `Save ${saving}% vs weekly` : "Flexible, short term"}</p>
       </div>
       <div>
         <p className="font-display text-4xl font-extrabold tracking-tight text-ink">{formatMoney(plan.price, "EUR", 2)}</p>
         <p className="mt-1 text-sm text-muted">
-          {plan.months === 1 ? "one-off for 1 month" : `${formatMoney(monthlyPrice(plan), "EUR", 2)} / month, paid once`}
+          {plan.period === "week" && plan.count === 1
+            ? "one-off for 1 week"
+            : `${formatMoney(weeklyPrice(plan), "EUR", 2)} / week, paid once`}
         </p>
       </div>
       <ul className="flex flex-col gap-2.5 text-[15px] text-ink-2">
-        {["All jobs unlocked", "Apply to any job", "Full salary details", `${plan.months === 12 ? "12" : plan.months} month${plan.months === 1 ? "" : "s"} access`].map(
+        {["All jobs unlocked", "Apply to any job", "Full salary details", `${planLength(plan)} access`].map(
           (f) => (
             <li key={f} className="flex items-center gap-2.5">
               <CircleCheck className="h-5 w-5 shrink-0 text-brand-600" /> {f}

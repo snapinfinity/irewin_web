@@ -165,6 +165,8 @@ export async function signInWithGoogle(opts: { marketingOptIn: boolean }): Promi
       lastLoginAt: now,
       loginCount: 1,
     });
+    // Welcome email (server sends it once per account). Fire-and-forget so it never slows or breaks sign-in.
+    postAsUser("/api/welcome", {}).catch((err) => console.error("[IREWIN] Welcome email request failed:", err));
     return { ok: true, isNewUser: true };
   } catch (err) {
     const code = (err as { code?: string }).code ?? "";

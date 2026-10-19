@@ -119,7 +119,7 @@ export function AccountView() {
             <dl className="grid gap-4 sm:grid-cols-3">
               <div>
                 <dt className="text-sm text-muted">Plan</dt>
-                <dd className="font-semibold">Premium · {plan?.name}</dd>
+                <dd className="font-semibold">{plan ? `Premium · ${plan.name}` : "Premium"}</dd>
               </div>
               <div>
                 <dt className="text-sm text-muted">Started</dt>

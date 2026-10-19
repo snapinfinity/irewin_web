@@ -27,7 +27,7 @@ export default function PremiumPage() {
           </h1>
           <p className="max-w-2xl text-on-dark sm:text-lg">
             {isPremium && membership
-              ? `Your ${currentPlan?.name ?? ""} plan is active until ${formatDate(membership.expiresAt)}. You can extend it any time.`
+              ? `Your ${currentPlan ? `${currentPlan.name} ` : "Premium "}plan is active until ${formatDate(membership.expiresAt)}. You can extend it any time.`
               : "Choose how long you'd like access. Every plan includes the same Premium features."}
           </p>
           <ul className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-on-dark">
@@ -40,7 +40,7 @@ export default function PremiumPage() {
         </div>
       </section>
       <section className="container-page py-12 sm:py-16">
-        <div className="grid gap-6 pt-3 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="mx-auto grid max-w-3xl gap-6 pt-3 sm:grid-cols-2">
           {PLANS.map((p) => (
             <PlanCard key={p.id} plan={p} current={isPremium} loggedIn={isLoggedIn} />
           ))}

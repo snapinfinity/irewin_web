@@ -54,8 +54,8 @@ export function PremiumTeaser() {
                     {p.badge}
                   </span>
                 )}
-                <span className="font-display text-3xl font-extrabold text-white sm:text-4xl">{p.months}</span>
-                <span className="text-sm text-on-dark">{p.months === 1 ? "month" : p.months === 12 ? "months · 1 year" : "months"}</span>
+                <span className="font-display text-3xl font-extrabold text-white sm:text-4xl">{p.count}</span>
+                <span className="text-sm text-on-dark">{p.count === 1 ? p.period : `${p.period}s`}</span>
               </div>
             ))}
             <p className="col-span-2 text-center text-sm text-on-dark">

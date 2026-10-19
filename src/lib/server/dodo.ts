@@ -2,8 +2,7 @@ import DodoPayments from "dodopayments";
 import type { Payment } from "dodopayments/resources/payments";
 import { Timestamp, type Transaction } from "firebase-admin/firestore";
 import { adminDb } from "@/lib/server/firebase-admin";
-import { getPlan } from "@/lib/data/plans";
-import { addMonths } from "@/lib/format";
+import { getPlan, planExpiry } from "@/lib/data/plans";
 import type { PlanId } from "@/lib/types";
 
 /**
@@ -27,10 +26,8 @@ export function dodo(): DodoPayments {
 /** One one-time Dodo product per plan, created in the Dodo dashboard with the same EUR price as src/lib/data/plans.ts. */
 export function productIdFor(planId: PlanId): string | undefined {
   const ids: Record<PlanId, string | undefined> = {
-    "1m": process.env.DODO_PRODUCT_1M,
+    "1w": process.env.DODO_PRODUCT_1W,
     "3m": process.env.DODO_PRODUCT_3M,
-    "6m": process.env.DODO_PRODUCT_6M,
-    "12m": process.env.DODO_PRODUCT_12M,
   };
   return ids[planId];
 }
@@ -73,7 +70,7 @@ export async function applyPayment(payment: Payment): Promise<ApplyResult> {
     const current = userSnap.get("membership") as { status?: string; expiresAt?: Timestamp } | null;
     const currentExpiry = current?.expiresAt?.toDate();
     const from = current?.status !== "cancelled" && currentExpiry && currentExpiry > now ? currentExpiry : now;
-    const expiresAt = Timestamp.fromDate(addMonths(from, plan.months));
+    const expiresAt = Timestamp.fromDate(planExpiry(from, plan));
     const source = dodoEnvironment === "test_mode" ? "dodo_test" : "dodo";
 
     tx.update(userRef, {

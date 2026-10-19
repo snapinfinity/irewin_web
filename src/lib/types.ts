@@ -57,12 +57,14 @@ export interface Job {
   createdAt: string;
 }
 
-export type PlanId = "1m" | "3m" | "6m" | "12m";
+export type PlanId = "1w" | "3m";
 
 export interface Plan {
   id: PlanId;
   name: string;
-  months: number;
+  /** One purchase grants `count` × `period` of access. */
+  period: "week" | "month";
+  count: number;
   price: number;
   badge?: string;
 }

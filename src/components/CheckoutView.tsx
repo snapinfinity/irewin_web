@@ -5,8 +5,8 @@ import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { ArrowLeft, CreditCard, Crown, FlaskConical } from "lucide-react";
 import { useSession } from "@/lib/auth/useSession";
-import { getPlan, monthlyPrice } from "@/lib/data/plans";
-import { addMonths, formatDate, formatMoney } from "@/lib/format";
+import { getPlan, planExpiry, weeklyPrice } from "@/lib/data/plans";
+import { formatDate, formatMoney } from "@/lib/format";
 
 const TEST_MODE = process.env.NEXT_PUBLIC_DODO_TEST_MODE !== "false";
 
@@ -34,7 +34,7 @@ export function CheckoutView() {
   }
 
   const start = isPremium && membership ? new Date(membership.expiresAt) : new Date();
-  const until = addMonths(start, plan.months);
+  const until = planExpiry(start, plan);
 
   async function pay() {
     if (!plan) return;
@@ -89,7 +89,7 @@ export function CheckoutView() {
           </span>
           <div>
             <p className="font-display font-semibold">Premium · {plan.name}</p>
-            <p className="text-sm text-muted">{formatMoney(monthlyPrice(plan), "EUR", 2)} / month</p>
+            <p className="text-sm text-muted">{formatMoney(weeklyPrice(plan), "EUR", 2)} / week</p>
           </div>
         </div>
         <dl className="flex flex-col gap-2 text-[15px]">

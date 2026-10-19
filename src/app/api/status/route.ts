@@ -25,6 +25,8 @@ export async function GET() {
     DODO_PAYMENTS_API_KEY: Boolean(process.env.DODO_PAYMENTS_API_KEY),
     DODO_PAYMENTS_WEBHOOK_KEY: Boolean(process.env.DODO_PAYMENTS_WEBHOOK_KEY),
     DODO_PRODUCTS: PLANS.map((p) => `${p.id}:${productIdFor(p.id) ? "set" : "MISSING"}`).join(" "),
+    RESEND_API_KEY: Boolean(process.env.RESEND_API_KEY),
+    EMAIL_FROM: process.env.EMAIL_FROM ?? null,
   };
 
   if (!isFirebaseConfigured) {

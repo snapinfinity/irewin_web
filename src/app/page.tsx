@@ -10,7 +10,7 @@ import { countByCategory, getFreeJobIds, getPublishedJobs } from "@/lib/data/job
 
 const STEPS = [
   { icon: UserPlus, title: "Create a free account", text: "Sign up in seconds with your email." },
-  { icon: Crown, title: "Choose a Premium plan", text: "1, 3 or 6 months, or a full year." },
+  { icon: Crown, title: "Choose a Premium plan", text: "Weekly, or 3 months for less per week." },
   { icon: ShieldCheck, title: "Unlock every job", text: "See full details and apply directly with employers." },
 ];
 

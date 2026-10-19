@@ -22,6 +22,12 @@ export function formatDate(iso: string | null): string {
   );
 }
 
+export function addWeeks(date: Date, weeks: number): Date {
+  const d = new Date(date);
+  d.setDate(d.getDate() + weeks * 7);
+  return d;
+}
+
 export function addMonths(date: Date, months: number): Date {
   const d = new Date(date);
   d.setMonth(d.getMonth() + months);

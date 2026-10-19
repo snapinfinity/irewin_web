@@ -37,6 +37,12 @@ To load test data into the dashboard, run `npm run seed:sample` in the **irewin_
 - **Email promotions:** people are only added to the mailing list if they tick the opt-in box (unticked by default). They can change it any time on /account. Use `marketingOptIn == true` when exporting emails.
 - **Premium is paid through Dodo Payments** (test mode for now — see below). "Remove Premium (test)" on /account clears it so you can buy again.
 
+## Welcome email (Resend)
+
+On a first Google sign-up the browser calls `POST /api/welcome`; the server ([email.ts](src/lib/server/email.ts)) sends one welcome email per account through Resend and records `welcomeEmailSentAt` on `users/{uid}`. Returning users get nothing. If Resend isn't configured or fails, sign-in still works.
+
+Setup: resend.com → **Domains** → add `irewinjobs.com` and add the DNS records it shows at your domain provider → **API Keys** → create a key (Sending access) → `RESEND_API_KEY`. Set `EMAIL_FROM` (e.g. `IREWIN Jobs <welcome@irewinjobs.com>`) and optionally `EMAIL_REPLY_TO`. On Vercel: `node scripts/push-vercel-secrets.mjs` uploads the key; add `EMAIL_FROM`/`EMAIL_REPLY_TO` as normal variables.
+
 ## Payments (Dodo Payments)
 
 1. /checkout → **Pay** calls `POST /api/checkout`, which checks the user's Firebase ID token and creates a Dodo hosted checkout with `metadata: { uid, planId }`.
@@ -50,7 +56,7 @@ To load test data into the dashboard, run `npm run seed:sample` in the **irewin_
 
 1. Dodo dashboard → switch **Live Mode off**.
 2. **Developer → API Keys** → create a test key (Payments, Customers, Checkout Sessions: Write; Products: Write) → `DODO_PAYMENTS_API_KEY` in `.env.local`.
-3. Run `npm run dodo:setup` — creates one EUR product per plan from `src/lib/data/plans.ts` and writes `DODO_PRODUCT_1M` … `_12M` into `.env.local` (re-running reuses existing products; changing a price creates a new one).
+3. Run `npm run dodo:setup` — creates one EUR product per plan from `src/lib/data/plans.ts` and writes `DODO_PRODUCT_1W` and `DODO_PRODUCT_3M` into `.env.local` (re-running reuses existing products; changing a price creates a new one).
 4. **Developer → Webhooks** → add `https://<your-site>/api/webhooks/dodo` with the `payment.succeeded` event → copy the signing secret (`whsec_…`) → `DODO_PAYMENTS_WEBHOOK_KEY`.
 5. Firebase Admin credentials: locally `FIREBASE_SERVICE_ACCOUNT_KEY_PATH=../irewin_dashboard/service-account.json`; on Vercel paste the JSON into `FIREBASE_SERVICE_ACCOUNT_JSON`.
 6. Open `/api/status` — every Dodo/Admin entry should be `true`/`set`.
@@ -69,7 +75,7 @@ To go live: create live keys, live products and a live webhook, set `DODO_PAYMEN
 | --- | --- |
 | `src/lib/data/jobs.ts`, `categories.ts`, `companies.ts` | Firestore reads + helpers |
 | `src/lib/firebase.ts` | Firebase setup (reads `.env.local`) |
-| `src/lib/data/plans.ts` | The 4 Premium plans (1, 3, 6 months, 1 year). **Prices are placeholders.** |
+| `src/lib/data/plans.ts` | The 2 Premium plans: Weekly €1.99 and 3 Months €19.99. |
 | `src/lib/constants.ts` | `FREE_JOB_PREVIEW_COUNT` (3) and labels |
 | `src/lib/auth/session-store.ts` | Google sign-in, `users` collection, starting checkout |
 | `src/lib/server/dodo.ts` | Dodo client, plan → product ids, `applyPayment` (grants Premium) |

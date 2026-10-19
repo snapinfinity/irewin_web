@@ -29,7 +29,7 @@ export function UnlockPanel({ lockedCount, compact = false }: { lockedCount: num
           <LockOpen className="h-5 w-5" />
           See Premium plans
         </Link>
-        <p className="text-sm text-on-dark">Plans from 1 month to 1 year.</p>
+        <p className="text-sm text-on-dark">Weekly or 3-month plans.</p>
       </div>
     </div>
   );
