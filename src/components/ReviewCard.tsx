@@ -8,7 +8,11 @@ export function ReviewCard({ review }: { review: Review }) {
     <figure className="flex h-full flex-col gap-4 rounded-2xl border border-line bg-white p-6">
       <div className="flex items-center justify-between gap-3">
         <Stars rating={review.rating} />
-        <Quote className="h-6 w-6 text-brand-100" aria-hidden="true" />
+        {review.sample ? (
+          <span className="rounded-full bg-gold-soft px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-800">Sample</span>
+        ) : (
+          <Quote className="h-6 w-6 text-brand-100" aria-hidden="true" />
+        )}
       </div>
       <blockquote className="flex-1 whitespace-pre-line text-[15px] leading-relaxed text-ink-2">{review.text}</blockquote>
       <figcaption className="flex items-center gap-3 border-t border-line pt-4">

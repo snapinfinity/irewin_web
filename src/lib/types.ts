@@ -92,6 +92,8 @@ export interface Review {
   status: ReviewStatus;
   createdAt: string | null;
   updatedAt: string | null;
+  /** Local-development preview data (src/lib/data/sample-reviews.ts), never real. */
+  sample?: boolean;
 }
 
 export interface SessionUser {
