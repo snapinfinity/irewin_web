@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { CategoryCardFull } from "@/components/CategoryCard";
 import { getCategories } from "@/lib/data/categories";
-import { countByCategory, countBySubcategory, getPublishedJobs } from "@/lib/data/jobs";
 
 export const metadata: Metadata = { title: "Job categories" };
 
 export const revalidate = 60;
 
 export default async function CategoriesPage() {
-  const [categories, jobs] = await Promise.all([getCategories(), getPublishedJobs()]);
-  const counts = countByCategory(jobs);
-  const subCounts = countBySubcategory(jobs);
+  // No job counts here, so this page never has to read the jobs.
+  const categories = await getCategories();
   return (
     <>
       <section className="bg-dark">
@@ -24,7 +22,7 @@ export default async function CategoriesPage() {
       <section className="container-page py-10 sm:py-14">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-6 lg:grid-cols-3 xl:grid-cols-4">
           {categories.map((c) => (
-            <CategoryCardFull key={c.id} category={c} count={counts[c.slug] ?? 0} subCounts={subCounts} />
+            <CategoryCardFull key={c.id} category={c} />
           ))}
         </div>
       </section>

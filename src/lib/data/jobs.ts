@@ -89,9 +89,3 @@ export function countByCategory(jobs: Job[]): Record<string, number> {
   for (const j of jobs) out[j.category] = (out[j.category] ?? 0) + 1;
   return out;
 }
-
-export function countBySubcategory(jobs: Job[]): Record<string, number> {
-  const out: Record<string, number> = {};
-  for (const j of jobs) if (j.subcategory) out[`${j.category}/${j.subcategory}`] = (out[`${j.category}/${j.subcategory}`] ?? 0) + 1;
-  return out;
-}
