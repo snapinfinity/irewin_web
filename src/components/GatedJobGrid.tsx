@@ -69,7 +69,7 @@ export function GatedJobGrid({
           <LockedJobCard key={`locked-${i}`} index={i} />
         ))}
       </div>
-      {lockedCount > 0 && <UnlockPanel lockedCount={lockedCount} />}
+      {lockedCount > 0 && <UnlockPanel />}
     </div>
   );
 }

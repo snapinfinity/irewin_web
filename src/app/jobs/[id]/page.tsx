@@ -22,6 +22,5 @@ export default async function JobPage({ params }: { params: Promise<{ id: string
   const { id } = await params;
   const [job, jobs] = await Promise.all([getPublishedJob(id), getPublishedJobs()]);
   if (!job) notFound();
-  const freeIds = getFreeJobIds(jobs);
-  return <JobDetailView job={job} isFreePreview={freeIds.includes(job.id)} lockedTotal={Math.max(jobs.length - freeIds.length, 0)} />;
+  return <JobDetailView job={job} isFreePreview={getFreeJobIds(jobs).includes(job.id)} />;
 }

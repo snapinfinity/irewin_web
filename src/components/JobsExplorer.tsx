@@ -217,15 +217,9 @@ export function JobsExplorer({
             className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-line bg-white font-semibold text-ink"
           >
             <SlidersHorizontal className="h-5 w-5 text-brand-600" />
-            {showFilters ? "Hide filters" : `Filters${active.length ? ` (${active.length})` : ""}`}
+            {showFilters ? "Hide filters" : "Filters"}
           </button>
           {showFilters && <div className="mt-3 rounded-2xl border border-line bg-white p-5">{filters}</div>}
-        </div>
-
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <p className="text-muted">
-            <strong className="font-display text-xl text-ink">{results.length}</strong> job{results.length === 1 ? "" : "s"} found
-          </p>
         </div>
 
         {active.length > 0 && (

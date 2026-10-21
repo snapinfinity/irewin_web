@@ -92,7 +92,7 @@ function ApplyBox({ job }: { job: Job }) {
   );
 }
 
-export function JobDetailView({ job, isFreePreview, lockedTotal }: { job: Job; isFreePreview: boolean; lockedTotal: number }) {
+export function JobDetailView({ job, isFreePreview }: { job: Job; isFreePreview: boolean }) {
   const { ready, isPremium } = useSession();
   const salary = formatSalaryRange(job.salaryMin, job.salaryMax, job.currency);
 
@@ -106,7 +106,7 @@ export function JobDetailView({ job, isFreePreview, lockedTotal }: { job: Job; i
         <Link href="/jobs" className="flex w-fit items-center gap-2 text-sm font-medium text-muted hover:text-ink">
           <ArrowLeft className="h-4 w-4" /> Back to jobs
         </Link>
-        <UnlockPanel lockedCount={lockedTotal} />
+        <UnlockPanel />
       </div>
     );
   }

@@ -15,7 +15,7 @@ export default async function CategoriesPage() {
         <div className="container-page py-10 sm:py-14">
           <h1 className="text-3xl font-extrabold tracking-tight text-white sm:text-5xl">Browse jobs by category</h1>
           <p className="mt-3 max-w-2xl text-on-dark sm:text-lg">
-            {categories.length} categories and their specialist areas, updated as new roles are published.
+            Every category and its specialist areas, updated as new roles are published.
           </p>
         </div>
       </section>
