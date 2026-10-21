@@ -104,7 +104,7 @@ export default async function HomePage() {
       </section>
 
       {/* Customer reviews (approved in the dashboard) */}
-      <section className="bg-white py-16 sm:py-24">
+      <section className="bg-white py-8 ">
         <div className="container-page flex flex-col gap-10">
           <SectionHead
             eyebrow="Reviews"
