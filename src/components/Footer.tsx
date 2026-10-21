@@ -14,6 +14,7 @@ export async function Footer() {
       links: [
         { label: "Premium plans", href: "/premium" },
         { label: "All categories", href: "/categories" },
+        { label: "Customer reviews", href: "/reviews" },
         { label: "My account", href: "/account" },
         { label: "Privacy policy", href: "#" },
         { label: "Terms of use", href: "#" },

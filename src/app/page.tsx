@@ -4,9 +4,11 @@ import { ChevronRight, Crown, ShieldCheck, UserPlus } from "lucide-react";
 import { CategoryCard } from "@/components/CategoryCard";
 import { GatedJobGrid } from "@/components/GatedJobGrid";
 import { PremiumTeaser } from "@/components/PremiumTeaser";
+import { ReviewCard } from "@/components/ReviewCard";
 import { SectionHead } from "@/components/SectionHead";
 import { getCategories } from "@/lib/data/categories";
 import { countByCategory, getFreeJobIds, getPublishedJobs } from "@/lib/data/jobs";
+import { averageRating, getApprovedReviews } from "@/lib/data/reviews";
 
 const STEPS = [
   { icon: UserPlus, title: "Create a free account", text: "Sign up in seconds with your email." },
@@ -17,7 +19,7 @@ const STEPS = [
 export const revalidate = 60;
 
 export default async function HomePage() {
-  const [jobs, categories] = await Promise.all([getPublishedJobs(), getCategories()]);
+  const [jobs, categories, reviews] = await Promise.all([getPublishedJobs(), getCategories(), getApprovedReviews()]);
   const counts = countByCategory(jobs);
   // Busiest categories first on the home page.
   const topCategories = [...categories].sort((a, b) => (counts[b.slug] ?? 0) - (counts[a.slug] ?? 0)).slice(0, 4);
@@ -98,6 +100,29 @@ export default async function HomePage() {
               </li>
             ))}
           </ol>
+        </div>
+      </section>
+
+      {/* Customer reviews (approved in the dashboard) */}
+      <section className="bg-white py-16 sm:py-24">
+        <div className="container-page flex flex-col gap-10">
+          <SectionHead
+            eyebrow="Reviews"
+            title="What our members say"
+            subtitle={
+              reviews.length > 0
+                ? `Rated ${averageRating(reviews).toFixed(1)} out of 5 by ${reviews.length} job seeker${reviews.length === 1 ? "" : "s"}.`
+                : "Used IREWIN? Be the first to leave a review."
+            }
+            link={{ href: "/reviews", label: reviews.length > 0 ? "All reviews" : "Write a review" }}
+          />
+          {reviews.length > 0 && (
+            <div className="grid gap-4 sm:gap-6 md:grid-cols-3">
+              {reviews.slice(0, 3).map((r) => (
+                <ReviewCard key={r.uid} review={r} />
+              ))}
+            </div>
+          )}
         </div>
       </section>
 

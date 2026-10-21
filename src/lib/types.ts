@@ -80,6 +80,20 @@ export interface Membership {
   paymentId: string | null;
 }
 
+export type ReviewStatus = "pending" | "approved" | "rejected";
+
+/** A customer review in the `reviews` collection (doc id = author's uid). Only approved ones are public. */
+export interface Review {
+  uid: string;
+  name: string;
+  photoURL: string | null;
+  rating: number;
+  text: string;
+  status: ReviewStatus;
+  createdAt: string | null;
+  updatedAt: string | null;
+}
+
 export interface SessionUser {
   uid: string;
   name: string;

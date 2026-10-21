@@ -12,6 +12,7 @@ const NAV = [
   { href: "/", label: "Home" },
   { href: "/jobs", label: "Find Jobs" },
   { href: "/categories", label: "Categories" },
+  { href: "/reviews", label: "Reviews" },
 ];
 
 export function Header() {
