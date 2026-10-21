@@ -62,7 +62,16 @@ Setup: resend.com → **Domains** → add `irewinjobs.com` and add the DNS recor
 6. Open `/api/status` — every Dodo/Admin entry should be `true`/`set`.
 7. Pay with card `4242 4242 4242 4242`, expiry 06/32, CVC 123 (decline test: `4000 0000 0000 0002`).
 
-To go live: create live keys, live products and a live webhook, set `DODO_PAYMENTS_ENVIRONMENT=live_mode` and `NEXT_PUBLIC_DODO_TEST_MODE=false`.
+### Going live
+
+Live keys go in `.env.live.local` (git-ignored, never read by the dev server), so local development stays in test mode.
+
+1. Dodo → finish business verification, then switch **Live Mode on**.
+2. **Developer → API Keys** → live key → `DODO_PAYMENTS_API_KEY` in `.env.live.local`.
+3. **Developer → Webhooks** → `https://www.irewinjobs.com/api/webhooks/dodo`, event `payment.succeeded` → signing secret → `DODO_PAYMENTS_WEBHOOK_KEY`.
+4. `npm run dodo:setup:live` creates the live products and writes their ids into `.env.live.local`.
+5. `node scripts/push-vercel-secrets.mjs --live` switches Vercel Production to live (all six Dodo values at once), then redeploy.
+6. The "Remove Premium (test)" button and the test-card notice disappear when `NEXT_PUBLIC_DODO_TEST_MODE=false`.
 
 ### One-time Firebase setup
 
@@ -87,5 +96,5 @@ To go live: create live keys, live products and a live webhook, set `DODO_PAYMEN
 
 ## Before going live
 
-1. **Lock membership in Firestore rules:** users can still write their own `membership` from the browser. In `irewin_dashboard/firestore.rules` (users → update) add `&& request.resource.data.membership == resource.data.membership` for `isSelf()`, then deploy. (This also disables "Remove Premium (test)".)
+1. **Membership is locked in Firestore rules** (`irewin_dashboard/firestore.rules`, users): a signed-in user can't create their doc with a membership or change it afterwards; only the server (after a Dodo payment) and admins can. Deploy with `npx firebase-tools deploy --only firestore:rules` from the dashboard folder.
 2. **Real locking:** published jobs are publicly readable in Firestore today, so locked jobs are only hidden visually. Send full job details (description, apply link, etc.) only to logged-in Premium members, using server-side checks and Firestore security rules.

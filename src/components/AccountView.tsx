@@ -9,6 +9,8 @@ import { getPlan } from "@/lib/data/plans";
 import { formatDate } from "@/lib/format";
 import { FREE_JOB_PREVIEW_COUNT } from "@/lib/constants";
 
+const TEST_MODE = process.env.NEXT_PUBLIC_DODO_TEST_MODE !== "false";
+
 export function AccountView() {
   const params = useSearchParams();
   const router = useRouter();
@@ -134,13 +136,15 @@ export function AccountView() {
               <Link href="/premium" className="flex h-11 items-center justify-center rounded-xl bg-brand-600 px-5 font-display font-semibold text-white hover:bg-brand-700">
                 Extend membership
               </Link>
-              <button
-                type="button"
-                onClick={() => cancelMembership()}
-                className="flex h-11 items-center justify-center rounded-xl border border-line px-5 text-sm font-semibold text-muted hover:bg-surface"
-              >
-                Remove Premium (test)
-              </button>
+              {TEST_MODE && (
+                <button
+                  type="button"
+                  onClick={() => cancelMembership()}
+                  className="flex h-11 items-center justify-center rounded-xl border border-line px-5 text-sm font-semibold text-muted hover:bg-surface"
+                >
+                  Remove Premium (test)
+                </button>
+              )}
             </div>
           </>
         ) : (

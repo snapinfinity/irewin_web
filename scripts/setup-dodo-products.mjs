@@ -2,16 +2,17 @@
 // .env.local (DODO_PRODUCT_1W, DODO_PRODUCT_3M). Safe to run again: plans
 // that already have a matching product (same plan + price) are reused.
 //
-//   npm run dodo:setup
+//   npm run dodo:setup        test mode, uses and updates .env.local
+//   npm run dodo:setup:live   live mode, uses and updates .env.live.local
 //
-// Needs DODO_PAYMENTS_API_KEY in .env.local (a test key while
-// DODO_PAYMENTS_ENVIRONMENT=test_mode). Plans and prices come from
-// src/lib/data/plans.ts.
+// Needs DODO_PAYMENTS_API_KEY in that file (a test key in .env.local, a live
+// key in .env.live.local). Plans and prices come from src/lib/data/plans.ts.
 import { readFileSync, writeFileSync } from "node:fs";
 import DodoPayments from "dodopayments";
 
-const ENV_FILE = ".env.local";
 const environment = process.env.DODO_PAYMENTS_ENVIRONMENT === "live_mode" ? "live_mode" : "test_mode";
+// Live keys live in their own file so local development keeps using test mode.
+const ENV_FILE = environment === "live_mode" ? ".env.live.local" : ".env.local";
 
 if (!process.env.DODO_PAYMENTS_API_KEY) {
   console.error(`DODO_PAYMENTS_API_KEY is empty in ${ENV_FILE}.\nCreate a key in Dodo (Live Mode OFF) → Developer → API Keys, paste it into ${ENV_FILE}, then run this again.`);
