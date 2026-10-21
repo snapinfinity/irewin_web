@@ -17,6 +17,15 @@ const STATUS = {
 
 const RATING_LABELS = ["", "Poor", "Fair", "Good", "Very good", "Excellent"];
 
+/** Tap-to-add sentence starters, so reviews say something useful for other job seekers. */
+const STARTERS = [
+  "I was looking for a job in ",
+  "The most helpful part of IREWIN was ",
+  "Applying directly with the employer ",
+  "The Premium plan was ",
+  "It would be even better if ",
+];
+
 /** Write, edit or delete your own review. Every save goes to the dashboard for approval first. */
 export function ReviewForm() {
   const { ready, user } = useSession();
@@ -163,14 +172,35 @@ export function ReviewForm() {
         </div>
       </fieldset>
 
+      <div className="flex flex-col gap-2">
+        <span className="text-sm font-semibold text-ink">Need ideas? Tap to start a sentence</span>
+        <div className="flex flex-wrap gap-2">
+          {STARTERS.map((s) => (
+            <button
+              key={s}
+              type="button"
+              onClick={() => {
+                const sep = text.trim() ? (/[.!?]$/.test(text.trim()) ? " " : ". ") : "";
+                setText((text.trim() + sep + s).slice(0, REVIEW_MAX_LENGTH));
+                document.getElementById("review-text")?.focus();
+              }}
+              className="rounded-full border border-line bg-surface px-3 py-1.5 text-sm text-ink-2 hover:border-brand-600 hover:text-brand-700"
+            >
+              {s.trim()}…
+            </button>
+          ))}
+        </div>
+      </div>
+
       <label className="flex flex-col gap-2">
         <span className="text-sm font-semibold text-ink">Your review</span>
         <textarea
+          id="review-text"
           value={text}
           onChange={(e) => setText(e.target.value)}
           maxLength={REVIEW_MAX_LENGTH}
           rows={5}
-          placeholder="How did IREWIN help your job search?"
+          placeholder="e.g. I was looking for a job in… IREWIN helped me… The best part was…"
           className="rounded-xl border border-line px-4 py-3 text-[15px] leading-relaxed outline-none focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
         />
         <span className="text-right text-xs text-muted">
