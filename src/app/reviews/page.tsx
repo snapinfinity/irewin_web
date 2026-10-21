@@ -2,16 +2,17 @@ import type { Metadata } from "next";
 import { MessageSquareQuote } from "lucide-react";
 import { ReviewCard } from "@/components/ReviewCard";
 import { ReviewForm } from "@/components/ReviewForm";
-import { Stars } from "@/components/Stars";
-import { averageRating, getApprovedReviews } from "@/lib/data/reviews";
+import { getLatestReviews } from "@/lib/data/reviews";
+
+/** How many of the newest approved reviews the page shows (and reads). */
+const REVIEWS_SHOWN = 30;
 
 export const metadata: Metadata = { title: "Customer reviews" };
 
 export const revalidate = 60;
 
 export default async function ReviewsPage() {
-  const reviews = await getApprovedReviews();
-  const average = averageRating(reviews);
+  const reviews = await getLatestReviews(REVIEWS_SHOWN);
   return (
     <>
       <section className="bg-dark">
@@ -20,17 +21,11 @@ export default async function ReviewsPage() {
             <MessageSquareQuote className="h-4 w-4" /> Customer reviews
           </span>
           <h1 className="max-w-3xl text-3xl font-extrabold tracking-tight text-white sm:text-5xl">What job seekers say about IREWIN</h1>
-          {reviews.length > 0 ? (
-            <p className="flex flex-wrap items-center justify-center gap-2 text-on-dark sm:text-lg">
-              <Stars rating={average} />
-              <span className="font-semibold text-white">{average.toFixed(1)} out of 5</span>
-              <span>
-                · {reviews.length} review{reviews.length === 1 ? "" : "s"}
-              </span>
-            </p>
-          ) : (
-            <p className="max-w-2xl text-on-dark sm:text-lg">Be the first to share how IREWIN helped your job search.</p>
-          )}
+          <p className="max-w-2xl text-on-dark sm:text-lg">
+            {reviews.length > 0
+              ? "Honest reviews from people using IREWIN to find work in Ireland."
+              : "Be the first to share how IREWIN helped your job search."}
+          </p>
         </div>
       </section>
 

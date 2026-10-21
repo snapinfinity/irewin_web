@@ -3,7 +3,7 @@ import type { Review } from "@/lib/types";
 /**
  * Made-up reviews for previewing the reviews design in local development
  * (`npm run dev`) only. They are never in Firestore and never shown on the
- * live site — getApprovedReviews() only adds them when NODE_ENV is "development".
+ * live site — getLatestReviews() only adds them when NODE_ENV is "development".
  */
 const day = (n: number) => new Date(Date.UTC(2026, 9, 20 - n, 10)).toISOString();
 
