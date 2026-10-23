@@ -18,7 +18,7 @@ export function GatedJobGrid({
   columns = "three",
 }: {
   jobs: Job[];
-  /** IDs of the free-preview jobs (the newest few across the whole site). */
+  /** IDs of the free-preview jobs (the newest few in each category). */
   freeIds: string[];
   maxLockedPreview?: number;
   columns?: "three" | "one";

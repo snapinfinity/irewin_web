@@ -63,9 +63,18 @@ export const getPublishedJob = cache(async (id: string): Promise<Job | null> => 
   }
 });
 
-/** The newest jobs are the free preview for visitors without Premium. */
+/** The newest few jobs in each category are the free preview for visitors without Premium. `jobs` must be newest first. */
 export function getFreeJobIds(jobs: Job[]): string[] {
-  return jobs.slice(0, FREE_JOB_PREVIEW_COUNT).map((j) => j.id);
+  const perCategory = new Map<string, number>();
+  const ids: string[] = [];
+  for (const j of jobs) {
+    const seen = perCategory.get(j.category) ?? 0;
+    if (seen < FREE_JOB_PREVIEW_COUNT) {
+      ids.push(j.id);
+      perCategory.set(j.category, seen + 1);
+    }
+  }
+  return ids;
 }
 
 /** "Dublin 2" → "Dublin", "Killarney, Co. Kerry" → "Killarney". */
@@ -74,10 +83,26 @@ export function primaryLocation(location: string): string {
   return first.replace(/\s+\d+[A-Za-z]?$/, "").trim() || location;
 }
 
-/** Distinct primary locations, busiest first. */
+/** Irish counties, plus large towns often written without their county. */
+const IRISH_PLACES = [
+  "Ireland", "Carlow", "Cavan", "Clare", "Cork", "Donegal", "Dublin", "Galway", "Kerry", "Kildare", "Kilkenny",
+  "Laois", "Leitrim", "Limerick", "Longford", "Louth", "Mayo", "Meath", "Monaghan", "Offaly", "Roscommon", "Sligo",
+  "Tipperary", "Waterford", "Westmeath", "Wexford", "Wicklow", "Antrim", "Armagh", "Fermanagh", "Derry", "Tyrone",
+  "Belfast", "Athlone", "Drogheda", "Dundalk", "Swords", "Navan", "Ennis", "Tralee", "Killarney", "Bray", "Naas",
+  "Letterkenny", "Shannon", "Newbridge", "Mullingar", "Portlaoise", "Castlebar", "Westport", "Remote",
+];
+const IRISH_PLACE_RE = new RegExp(`\\b(${IRISH_PLACES.join("|")})\\b`, "i");
+
+/** True when a job's location is in Ireland (or remote), so test or stray locations stay out of the lists. */
+export function isIrishLocation(location: string): boolean {
+  return IRISH_PLACE_RE.test(location);
+}
+
+/** Distinct primary locations in Ireland, busiest first. */
 export function getLocations(jobs: Job[]): { name: string; count: number }[] {
   const counts = new Map<string, number>();
   for (const j of jobs) {
+    if (!isIrishLocation(j.location)) continue;
     const loc = primaryLocation(j.location);
     if (loc) counts.set(loc, (counts.get(loc) ?? 0) + 1);
   }

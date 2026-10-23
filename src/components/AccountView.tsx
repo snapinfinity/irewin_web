@@ -149,7 +149,7 @@ export function AccountView() {
           </>
         ) : (
           <>
-            <p className="text-muted">You&apos;re on the free plan. You can see {FREE_JOB_PREVIEW_COUNT} preview jobs; Premium unlocks every job and the apply button.</p>
+            <p className="text-muted">You&apos;re on the free plan. You can see {FREE_JOB_PREVIEW_COUNT} preview jobs in every category; Premium unlocks every job and the apply button.</p>
             <Link href="/premium" className="flex h-11 w-fit items-center gap-2 rounded-xl bg-accent px-5 font-display font-semibold text-dark hover:bg-accent-soft">
               <Crown className="h-4 w-4" /> See Premium plans
             </Link>

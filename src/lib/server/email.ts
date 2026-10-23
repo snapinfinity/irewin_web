@@ -43,7 +43,7 @@ function welcomeText(name: string, site: string) {
 
 Welcome to IREWIN, jobs across Ireland in one place.
 
-Your free account lets you browse every category and see the ${FREE_JOB_PREVIEW_COUNT} newest jobs.
+Your free account lets you see the ${FREE_JOB_PREVIEW_COUNT} newest jobs in every category.
 Browse jobs: ${site}/jobs
 
 Want every listing? Premium unlocks all jobs, full details and direct apply links.
@@ -74,7 +74,7 @@ function welcomeHtml(name: string, site: string) {
   <tr><td style="padding:30px 28px 8px">
     <h1 style="margin:0 0 12px;font-size:24px;line-height:1.3;color:#1f2937">Welcome, ${name}! &#128075;</h1>
     <p style="margin:0 0 16px;font-size:16px;line-height:1.6;color:#374151">Thanks for joining IREWIN, your place to find jobs across Ireland. Your free account is ready.</p>
-    <p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#374151">Start by browsing categories and the ${FREE_JOB_PREVIEW_COUNT} newest jobs:</p>
+    <p style="margin:0 0 22px;font-size:16px;line-height:1.6;color:#374151">Start by browsing categories and the ${FREE_JOB_PREVIEW_COUNT} newest jobs in each one:</p>
     ${button(`${site}/jobs`, "Browse jobs", "#0f766e", "#ffffff")}
   </td></tr>
   <tr><td style="padding:26px 28px 8px">

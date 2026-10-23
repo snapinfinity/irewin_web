@@ -78,7 +78,8 @@ export default async function HomePage() {
       <section className="bg-white py-16 sm:py-24">
         <div className="container-page flex flex-col gap-10">
           <SectionHead eyebrow="Latest jobs" title="Fresh opportunities this week" link={{ href: "/jobs", label: "View all jobs" }} />
-          <GatedJobGrid jobs={jobs.slice(0, 6)} freeIds={getFreeJobIds(jobs)} />
+          {/* Only the 3 newest show here, so the home page still teases locked jobs. They're always in the free set. */}
+          <GatedJobGrid jobs={jobs.slice(0, 6)} freeIds={getFreeJobIds(jobs.slice(0, 3))} />
         </div>
       </section>
 

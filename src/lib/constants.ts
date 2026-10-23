@@ -1,6 +1,6 @@
 import type { EmploymentType, ExperienceLevel, WorkMode } from "@/lib/types";
 
-/** How many jobs a visitor without Premium can see in full (never with an apply button). */
+/** How many jobs per category a visitor without Premium can see in full (never with an apply button). */
 export const FREE_JOB_PREVIEW_COUNT = 3;
 
 export const WORK_MODE_LABELS: Record<WorkMode, string> = {
