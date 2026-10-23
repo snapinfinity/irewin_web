@@ -142,6 +142,8 @@ export async function signInWithGoogle(opts: { marketingOptIn: boolean }): Promi
         changes.marketingOptInAt = now;
       }
       await updateDoc(ref, changes);
+      // "New sign-in" security email. Fire-and-forget so it never slows or breaks sign-in.
+      postAsUser("/api/login-alert", {}).catch((err) => console.error("[IREWIN] Sign-in email request failed:", err));
       return { ok: true, isNewUser: false };
     }
 
