@@ -33,7 +33,9 @@ export function CheckoutView() {
     );
   }
 
-  const start = isPremium && membership ? new Date(membership.expiresAt) : new Date();
+  // Already Premium: the new plan is added on after the current one ends (same as the server does).
+  const extending = isPremium && !!membership;
+  const start = extending ? new Date(membership.expiresAt) : new Date();
   const until = planExpiry(start, plan);
 
   async function pay() {
@@ -94,13 +96,18 @@ export function CheckoutView() {
         </div>
         <dl className="flex flex-col gap-2 text-[15px]">
           <div className="flex justify-between">
-            <dt className="text-muted">Access starts</dt>
-            <dd>{formatDate(start.toISOString())}</dd>
+            <dt className="text-muted">{extending ? "Current Premium ends" : "Access starts"}</dt>
+            <dd>{extending ? formatDate(start.toISOString()) : "Today"}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-muted">Access until</dt>
-            <dd>{formatDate(until.toISOString())}</dd>
+            <dt className="text-muted">{extending ? "New end date" : "Access until"}</dt>
+            <dd className={extending ? "font-semibold" : undefined}>{formatDate(until.toISOString())}</dd>
           </div>
+          {extending && (
+            <p className="text-sm leading-relaxed text-muted">
+              You already have Premium, so this {plan.period} is added on after your current plan ends. You won&apos;t lose any days.
+            </p>
+          )}
           <div className="mt-2 flex justify-between border-t border-line pt-3 font-display text-lg font-bold">
             <dt>Total</dt>
             <dd>{formatMoney(plan.price, "EUR", 2)}</dd>

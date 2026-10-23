@@ -14,10 +14,13 @@ export function formatSalaryRange(min: number | null, max: number | null, curren
   return "Salary not disclosed";
 }
 
-/** Deterministic (UTC) date so server and client render the same string. */
+/**
+ * Date in Irish time. A fixed time zone keeps server and client output identical,
+ * and Irish (not UTC) time avoids showing yesterday's date just after midnight in summer.
+ */
 export function formatDate(iso: string | null): string {
   if (!iso) return "—";
-  return new Intl.DateTimeFormat("en-IE", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" }).format(
+  return new Intl.DateTimeFormat("en-IE", { day: "numeric", month: "short", year: "numeric", timeZone: "Europe/Dublin" }).format(
     new Date(iso),
   );
 }
