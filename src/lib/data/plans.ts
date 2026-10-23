@@ -1,5 +1,5 @@
 import type { Plan, PlanId } from "@/lib/types";
-import { addMonths, addWeeks } from "@/lib/format";
+import { addMonths, addWeeks, formatMoney } from "@/lib/format";
 
 /** Premium plans. Each is a one-off payment for a fixed length of access. */
 export const PLANS: Plan[] = [
@@ -11,8 +11,11 @@ export const PREMIUM_BENEFITS = [
   "See every job listed across Ireland",
   "Apply directly on employers' websites",
   "Full salary, requirements and benefits for every role",
+  "Jobs from every job board, plus roles posted only on company websites",
+  "Every listing reviewed by our team before it goes live",
   "New jobs the day they're published",
   "Filter by category, location, work mode and experience",
+  `Just ${formatMoney(PLANS[0].price, "EUR", 2)} a week, about the price of a single bus fare`,
 ];
 
 export function getPlan(id: string | null | undefined): Plan | undefined {
