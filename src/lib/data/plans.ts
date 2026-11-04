@@ -1,14 +1,15 @@
 import type { Plan, PlanId } from "@/lib/types";
-import { addHours, addMonths, addWeeks, formatMoney } from "@/lib/format";
+import { addDays, addHours, addMonths, addWeeks, formatMoney } from "@/lib/format";
 
 /**
  * Premium plans. Recurring ones are auto-renewing subscriptions (charged `price`
- * every `count` × `period` until cancelled). The 1-hour pass is a one-off payment:
- * Dodo can't renew more often than daily, so it simply ends after the hour.
+ * every `count` × `period` until cancelled). The 1-hour and 1-day passes are one-off
+ * payments that simply end.
  * Keep `recurring` right after `price` — scripts/setup-dodo-products.mjs reads it.
  */
 export const PLANS: Plan[] = [
   { id: "1h", name: "1 Hour", period: "hour", count: 1, price: 0.99, recurring: false, badge: "Try it" },
+  { id: "1d", name: "1 Day", period: "day", count: 1, price: 0.99, recurring: false },
   { id: "1w", name: "Weekly", period: "week", count: 1, price: 1.99, recurring: true },
   { id: "3m", name: "3 Months", period: "month", count: 3, price: 19.99, recurring: true, badge: "Most popular" },
 ];
@@ -43,11 +44,13 @@ export function billingInterval(plan: Plan): string {
 /** When access bought at `from` runs out (= the next renewal date). */
 export function planExpiry(from: Date, plan: Plan): Date {
   if (plan.period === "hour") return addHours(from, plan.count);
+  if (plan.period === "day") return addDays(from, plan.count);
   return plan.period === "week" ? addWeeks(from, plan.count) : addMonths(from, plan.count);
 }
 
 export function weeklyPrice(plan: Plan): number {
-  const weeks = plan.period === "hour" ? plan.count / 168 : plan.period === "week" ? plan.count : (plan.count * 52) / 12;
+  const weeks =
+    plan.period === "hour" ? plan.count / 168 : plan.period === "day" ? plan.count / 7 : plan.period === "week" ? plan.count : (plan.count * 52) / 12;
   return plan.price / weeks;
 }
 

@@ -2,7 +2,7 @@
 // into the env file:
 //   recurring plans → subscription products  (DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M)
 //                     Weekly renews every week, 3 Months every 3 months, until cancelled.
-//   one-off plans   → one-time products      (DODO_PRODUCT_1H, the 1-hour pass)
+//   one-off plans   → one-time products      (DODO_PRODUCT_1H, DODO_PRODUCT_1D: the 1-hour and 1-day passes)
 // Safe to run again: plans that already have a matching product (same plan,
 // price and billing interval) are reused.
 //
@@ -26,7 +26,7 @@ if (!process.env.DODO_PAYMENTS_API_KEY) {
 // { id: "1w", name: "Weekly", period: "week", count: 1, price: 1.99 ... }
 const plans = [
   ...readFileSync("src/lib/data/plans.ts", "utf-8").matchAll(
-    /\{\s*id:\s*"(\w+)",\s*name:\s*"([^"]+)",\s*period:\s*"(hour|week|month)",\s*count:\s*(\d+),\s*price:\s*([\d.]+),\s*recurring:\s*(true|false)/g,
+    /\{\s*id:\s*"(\w+)",\s*name:\s*"([^"]+)",\s*period:\s*"(hour|day|week|month)",\s*count:\s*(\d+),\s*price:\s*([\d.]+),\s*recurring:\s*(true|false)/g,
   ),
 ].map(([, id, name, period, count, price, recurring]) => ({
   id,

@@ -39,7 +39,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "You already have an auto-renewing Premium plan. Manage it from My account." }, { status: 409 });
   }
   if (!plan.recurring && active) {
-    return NextResponse.json({ error: "You already have Premium, so the 1-hour pass isn't needed. Check My account for your plan." }, { status: 409 });
+    return NextResponse.json({ error: `You already have Premium, so a ${plan.name} pass isn't needed. Check My account for your plan.` }, { status: 409 });
   }
   const trialDays = plan.recurring && active && !membership?.subscriptionId ? Math.min(Math.floor((expiresAt - now) / DAY), 365) : 0;
 

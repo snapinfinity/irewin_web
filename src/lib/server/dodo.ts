@@ -29,6 +29,7 @@ export function dodo(): DodoPayments {
 export function productIdFor(planId: PlanId): string | undefined {
   const ids: Record<PlanId, string | undefined> = {
     "1h": process.env.DODO_PRODUCT_1H,
+    "1d": process.env.DODO_PRODUCT_1D,
     "1w": process.env.DODO_PRODUCT_1W,
     "3m": process.env.DODO_PRODUCT_3M,
   };
@@ -38,7 +39,8 @@ export function productIdFor(planId: PlanId): string | undefined {
 /** Recurring Dodo product per plan (npm run dodo:setup creates them): Weekly renews every week, 3 Months every 3 months. */
 export function subscriptionProductIdFor(planId: PlanId): string | undefined {
   const ids: Record<PlanId, string | undefined> = {
-    "1h": undefined, // one-off pass, never a subscription
+    "1h": undefined, // one-off passes, never subscriptions
+    "1d": undefined,
     "1w": process.env.DODO_SUBSCRIPTION_1W,
     "3m": process.env.DODO_SUBSCRIPTION_3M,
   };

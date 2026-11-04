@@ -30,7 +30,7 @@ export default function PremiumPage() {
               ? `Your ${currentPlan ? `${currentPlan.name} ` : "Premium "}plan renews automatically on ${formatDate(membership.nextBillingDate)}. You can cancel any time from My account.`
               : isPremium && membership
                 ? `Your ${currentPlan ? `${currentPlan.name} ` : "Premium "}access runs until ${formatDate(membership.expiresAt)}. Pick a plan to keep Premium going automatically after that.`
-                : "Try Premium for an hour, or pick weekly or every 3 months. Weekly and 3-month plans renew automatically, and you can cancel any time."}
+                : "Try Premium for an hour or a day, or pick weekly or every 3 months. Weekly and 3-month plans renew automatically, and you can cancel any time."}
           </p>
           <ul className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-on-dark">
             {PREMIUM_BENEFITS.slice(0, 3).map((b) => (
@@ -42,7 +42,7 @@ export default function PremiumPage() {
         </div>
       </section>
       <section className="container-page py-12 sm:py-16">
-        <div className="mx-auto grid max-w-5xl gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mx-auto grid max-w-6xl gap-6 pt-3 sm:grid-cols-2 xl:grid-cols-4">
           {PLANS.map((p) => (
             <PlanCard
               key={p.id}

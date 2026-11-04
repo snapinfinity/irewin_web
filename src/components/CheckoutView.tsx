@@ -37,7 +37,7 @@ export function CheckoutView() {
     return (
       <div className="container-page py-16 text-center">
         <p className="font-display text-xl font-semibold">You already have Premium</p>
-        <p className="mt-2 text-muted">The 1-hour pass is for members without Premium.</p>
+        <p className="mt-2 text-muted">The {plan.name} pass is for members without Premium.</p>
         <Link href="/account" className="mt-4 inline-block font-semibold text-brand-600">
           See your plan in My account
         </Link>

@@ -8,7 +8,7 @@
 //   node scripts/push-vercel-secrets.mjs --live
 //     Switches Production to live Dodo payments, from .env.live.local:
 //     DODO_PAYMENTS_API_KEY, DODO_PAYMENTS_WEBHOOK_KEY (sensitive), DODO_PAYMENTS_ENVIRONMENT,
-//     DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M, DODO_PRODUCT_1H, NEXT_PUBLIC_DODO_TEST_MODE. All must be set, so
+//     DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M, DODO_PRODUCT_1H, DODO_PRODUCT_1D, NEXT_PUBLIC_DODO_TEST_MODE. All must be set, so
 //     Production is never left half test, half live.
 //
 // Values are sent to the Vercel CLI on stdin, never printed or put on the command line.
@@ -32,6 +32,7 @@ if (live) {
     ["DODO_SUBSCRIPTION_1W", false],
     ["DODO_SUBSCRIPTION_3M", false],
     ["DODO_PRODUCT_1H", false],
+    ["DODO_PRODUCT_1D", false],
     ["NEXT_PUBLIC_DODO_TEST_MODE", false],
   ];
   const missing = wanted.filter(([name]) => !read(name)).map(([name]) => name);
@@ -50,7 +51,7 @@ if (live) {
     if (value) vars.push([name, value, true]);
     else console.log(`- ${name} is empty in ${ENV_FILE}, skipped`);
   }
-  for (const name of ["DODO_SUBSCRIPTION_1W", "DODO_SUBSCRIPTION_3M", "DODO_PRODUCT_1H"]) {
+  for (const name of ["DODO_SUBSCRIPTION_1W", "DODO_SUBSCRIPTION_3M", "DODO_PRODUCT_1H", "DODO_PRODUCT_1D"]) {
     const value = read(name);
     if (value) vars.push([name, value, false]);
     else console.log(`- ${name} is empty in ${ENV_FILE}, skipped (run npm run dodo:setup first)`);

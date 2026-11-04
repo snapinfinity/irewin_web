@@ -61,13 +61,13 @@ export interface Job {
   openAccess: boolean;
 }
 
-export type PlanId = "1h" | "1w" | "3m";
+export type PlanId = "1h" | "1d" | "1w" | "3m";
 
 export interface Plan {
   id: PlanId;
   name: string;
   /** Each payment grants `count` × `period` of access. */
-  period: "hour" | "week" | "month";
+  period: "hour" | "day" | "week" | "month";
   count: number;
   price: number;
   /** true = auto-renewing Dodo subscription; false = one-off pass that just ends. */
