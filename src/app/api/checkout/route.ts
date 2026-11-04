@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getPlan } from "@/lib/data/plans";
-import { requireUser } from "@/lib/server/firebase-admin";
-import { dodo, productIdFor } from "@/lib/server/dodo";
+import { adminDb, requireUser } from "@/lib/server/firebase-admin";
+import { dodo, productIdFor, subscriptionProductIdFor } from "@/lib/server/dodo";
+
+const DAY = 86_400_000;
 
 /**
  * POST { planId } with the user's Firebase ID token → creates a Dodo hosted
- * checkout and returns its URL. The uid and plan travel in the session's
- * metadata, set here on the server, so the webhook knows whom to upgrade.
+ * checkout for the plan's recurring (auto-renewing) product and returns its URL.
+ * The uid and plan travel in the session's metadata, set here on the server,
+ * so the webhooks know whom to upgrade.
  */
 export async function POST(request: Request) {
   const user = await requireUser(request);
@@ -16,11 +19,29 @@ export async function POST(request: Request) {
   const plan = getPlan(planId);
   if (!plan) return NextResponse.json({ error: "Unknown plan." }, { status: 400 });
 
-  const productId = productIdFor(plan.id);
+  const productId = plan.recurring ? subscriptionProductIdFor(plan.id) : productIdFor(plan.id);
   if (!productId) {
-    console.error(`[IREWIN] DODO_PRODUCT_${plan.id.toUpperCase()} is not set`);
+    console.error(`[IREWIN] ${plan.recurring ? "DODO_SUBSCRIPTION" : "DODO_PRODUCT"}_${plan.id.toUpperCase()} is not set`);
     return NextResponse.json({ error: "Payments aren't set up for this plan yet." }, { status: 500 });
   }
+
+  // One auto-renewing plan per member. Someone with whole days left on a one-off
+  // plan gets them as a free trial, so their first charge lands when it runs out.
+  // A one-off pass bought while Premium is active is added on after it (applyPayment).
+  const membership = (await adminDb().collection("users").doc(user.uid).get()).get("membership") as
+    | { status?: string; expiresAt?: { toMillis(): number }; subscriptionId?: string; autoRenew?: boolean }
+    | null
+    | undefined;
+  const now = Date.now();
+  const expiresAt = membership?.expiresAt?.toMillis() ?? 0;
+  const active = membership?.status === "active" && expiresAt > now;
+  if (active && membership?.subscriptionId && membership.autoRenew) {
+    return NextResponse.json({ error: "You already have an auto-renewing Premium plan. Manage it from My account." }, { status: 409 });
+  }
+  if (!plan.recurring && active) {
+    return NextResponse.json({ error: "You already have Premium, so the 1-hour pass isn't needed. Check My account for your plan." }, { status: 409 });
+  }
+  const trialDays = plan.recurring && active && !membership?.subscriptionId ? Math.min(Math.floor((expiresAt - now) / DAY), 365) : 0;
 
   const origin = process.env.SITE_URL ?? new URL(request.url).origin;
   try {
@@ -28,6 +49,7 @@ export async function POST(request: Request) {
       product_cart: [{ product_id: productId, quantity: 1 }],
       customer: { email: user.email ?? "", name: user.name ?? user.email ?? "IREWIN member" },
       metadata: { uid: user.uid, planId: plan.id },
+      ...(trialDays > 0 ? { subscription_data: { trial_period_days: trialDays } } : {}),
       return_url: `${origin}/checkout/success`,
       cancel_url: `${origin}/checkout?plan=${plan.id}`,
     });

@@ -7,6 +7,8 @@ import {
   getServerSnapshot,
   getSnapshot,
   isMembershipActive,
+  openBillingPortal,
+  setAutoRenew,
   setMarketingOptIn,
   signInWithGoogle,
   signOut,
@@ -27,11 +29,15 @@ export function useSession() {
     membership,
     isLoggedIn: !!user,
     isPremium: !!user && isMembershipActive(membership),
+    /** Premium on an auto-renewing plan (so buying another plan makes no sense). */
+    isSubscribed: !!user && isMembershipActive(membership) && !!membership?.subscriptionId && membership.autoRenew,
     signInWithGoogle,
     signOut,
     setMarketingOptIn,
     startCheckout,
     confirmPayment,
     cancelMembership,
+    setAutoRenew,
+    openBillingPortal,
   };
 }

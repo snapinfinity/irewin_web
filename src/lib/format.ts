@@ -25,6 +25,10 @@ export function formatDate(iso: string | null): string {
   );
 }
 
+export function addHours(date: Date, hours: number): Date {
+  return new Date(date.getTime() + hours * 3_600_000);
+}
+
 export function addWeeks(date: Date, weeks: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + weeks * 7);

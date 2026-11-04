@@ -41,10 +41,12 @@ export const getCategories = cache(async (): Promise<Category[]> => {
           icon: iconForCategory(String(data.slug ?? d.id), String(data.name ?? "")),
           subcategories,
           enabled: data.enabled !== false,
+          // Categories saved before the dashboard's "Premium only" switch were all Premium.
+          premium: data.premium !== false,
         };
       })
       .filter((c) => c.enabled)
-      .map((c): Category => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, subcategories: c.subcategories }))
+      .map((c): Category => ({ id: c.id, name: c.name, slug: c.slug, icon: c.icon, subcategories: c.subcategories, premium: c.premium }))
       .sort((a, b) => a.name.localeCompare(b.name));
   } catch (err) {
     console.error("[IREWIN] Failed to load categories from Firestore:", err);

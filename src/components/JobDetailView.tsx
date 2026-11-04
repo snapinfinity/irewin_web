@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 import {
   ArrowLeft,
   Briefcase,
@@ -17,15 +18,18 @@ import {
   ShieldCheck,
   TrendingUp,
 } from "lucide-react";
+import { AppliedBadge } from "@/components/AppliedBadge";
 import { Badge } from "@/components/Badge";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { UnlockPanel } from "@/components/UnlockPanel";
+import { markApplied, unmarkApplied, useAppliedAt } from "@/lib/applications-client";
 import { useSession } from "@/lib/auth/useSession";
 import { EMPLOYMENT_TYPE_LABELS, EXPERIENCE_LEVEL_LABELS, WORK_MODE_LABELS } from "@/lib/constants";
 import { formatDate, formatSalaryRange } from "@/lib/format";
 import type { Job } from "@/lib/types";
 
-function Section({ title, children }: { title: string; children: React.ReactNode }) {
+function Section({ title, children, hidden = false }: { title: string; children: React.ReactNode; hidden?: boolean }) {
+  if (hidden) return null; // nothing entered in the dashboard (e.g. no skills) → no empty box
   return (
     <section className="flex flex-col gap-4 rounded-2xl border border-line bg-white p-5 sm:p-8">
       <h2 className="text-xl font-semibold">{title}</h2>
@@ -58,16 +62,62 @@ function Row({ icon: Icon, label, value }: { icon: typeof Euro; label: string; v
   );
 }
 
+function AppliedBox({ job, appliedAt, canReopen }: { job: Job; appliedAt: string; canReopen: boolean }) {
+  const [removing, setRemoving] = useState(false);
+  const remove = () => {
+    setRemoving(true);
+    unmarkApplied(job.id)
+      .catch((err) => console.error("[IREWIN] Could not remove the Applied mark:", err))
+      .finally(() => setRemoving(false));
+  };
+  return (
+    <div className="flex flex-col gap-2">
+      <div
+        role="status"
+        className="flex h-13 items-center justify-center gap-2 rounded-xl border border-brand-600 bg-brand-50 px-6 py-3.5 font-display text-base font-semibold text-brand-700"
+      >
+        <CircleCheck className="h-5 w-5" /> Applied
+      </div>
+      <p className="text-center text-[13px] text-muted">
+        You applied on {formatDate(appliedAt)}.
+        {canReopen && (
+          <>
+            {" "}
+            <a href={job.applicationUrl} target="_blank" rel="noopener noreferrer" className="font-medium text-brand-600 hover:underline">
+              Open application page
+            </a>
+          </>
+        )}
+      </p>
+      <button
+        type="button"
+        onClick={remove}
+        disabled={removing}
+        className="mx-auto text-[13px] text-muted underline-offset-2 hover:text-ink hover:underline disabled:opacity-50"
+      >
+        Didn&apos;t apply? Remove the mark
+      </button>
+    </div>
+  );
+}
+
+const recordApplied = (jobId: string) =>
+  markApplied(jobId).catch((err) => console.error("[IREWIN] Could not save the application:", err));
+
 function ApplyBox({ job }: { job: Job }) {
   const { ready, isPremium } = useSession();
+  const appliedAt = useAppliedAt(job.id);
   if (!ready) return <div className="h-14 animate-pulse rounded-xl bg-slate-100" />;
-  if (isPremium) {
+  if (appliedAt) return <AppliedBox job={job} appliedAt={appliedAt} canReopen={isPremium || job.openAccess} />;
+  if (isPremium || job.openAccess) {
     return (
       <div className="flex flex-col gap-2">
         <a
           href={job.applicationUrl}
           target="_blank"
           rel="noopener noreferrer"
+          onClick={() => recordApplied(job.id)}
+          onAuxClick={() => recordApplied(job.id)}
           className="flex h-13 items-center justify-center gap-2 rounded-xl bg-brand-600 px-6 py-3.5 font-display text-base font-semibold text-white hover:bg-brand-700"
         >
           Apply on company site <ExternalLink className="h-5 w-5" />
@@ -100,7 +150,7 @@ export function JobDetailView({ job, isFreePreview }: { job: Job; isFreePreview:
     return <div className="container-page py-16"><div className="h-64 animate-pulse rounded-2xl bg-white" /></div>;
   }
 
-  if (!isFreePreview && !isPremium) {
+  if (!isFreePreview && !isPremium && !job.openAccess) {
     return (
       <div className="container-page flex flex-col gap-6 py-10 sm:py-16">
         <Link href="/jobs" className="flex w-fit items-center gap-2 text-sm font-medium text-muted hover:text-ink">
@@ -136,7 +186,9 @@ export function JobDetailView({ job, isFreePreview }: { job: Job; isFreePreview:
             <CompanyLogo name={job.companyName} logoURL={job.companyLogoURL} size={80} className="rounded-2xl" />
             <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                {isFreePreview && !isPremium && <Badge tone="gold">Free preview</Badge>}
+                <AppliedBadge jobId={job.id} />
+                {job.openAccess && !isPremium && <Badge tone="gold">Free job</Badge>}
+                {isFreePreview && !job.openAccess && !isPremium && <Badge tone="gold">Free preview</Badge>}
                 {isPremium && (
                   <Badge tone="gold" className="gap-1">
                     <Crown className="h-3.5 w-3.5" /> Premium
@@ -168,13 +220,13 @@ export function JobDetailView({ job, isFreePreview }: { job: Job; isFreePreview:
           <Section title="About the role">
             <p className="text-base leading-relaxed text-ink-2">{job.description}</p>
           </Section>
-          <Section title="Responsibilities">
+          <Section title="Responsibilities" hidden={job.responsibilities.length === 0}>
             <List items={job.responsibilities} />
           </Section>
-          <Section title="Requirements">
+          <Section title="Requirements" hidden={job.requirements.length === 0}>
             <List items={job.requirements} />
           </Section>
-          <Section title="Benefits">
+          <Section title="Benefits" hidden={job.benefits.length === 0}>
             <div className="grid gap-3 sm:grid-cols-2">
               {job.benefits.map((b) => (
                 <div key={b} className="flex items-center gap-3 rounded-xl bg-surface px-4 py-3 text-[15px]">
@@ -183,7 +235,7 @@ export function JobDetailView({ job, isFreePreview }: { job: Job; isFreePreview:
               ))}
             </div>
           </Section>
-          <Section title="Skills">
+          <Section title="Skills" hidden={job.skills.length === 0}>
             <div className="flex flex-wrap gap-2">
               {job.skills.map((s) => (
                 <Badge key={s}>{s}</Badge>

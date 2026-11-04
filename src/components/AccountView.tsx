@@ -3,10 +3,10 @@
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { CircleCheck, Crown, LogOut, Mail } from "lucide-react";
+import { CircleAlert, CircleCheck, Crown, LogOut, Mail } from "lucide-react";
 import { useSession } from "@/lib/auth/useSession";
-import { getPlan } from "@/lib/data/plans";
-import { formatDate } from "@/lib/format";
+import { billingInterval, getPlan } from "@/lib/data/plans";
+import { formatDate, formatMoney } from "@/lib/format";
 import { FREE_JOB_PREVIEW_COUNT } from "@/lib/constants";
 
 const TEST_MODE = process.env.NEXT_PUBLIC_DODO_TEST_MODE !== "false";
@@ -14,10 +14,29 @@ const TEST_MODE = process.env.NEXT_PUBLIC_DODO_TEST_MODE !== "false";
 export function AccountView() {
   const params = useSearchParams();
   const router = useRouter();
-  const { user, profile, membership, isPremium, signOut, cancelMembership, setMarketingOptIn } = useSession();
+  const { user, profile, membership, isPremium, signOut, cancelMembership, setMarketingOptIn, setAutoRenew, openBillingPortal } = useSession();
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const [billingBusy, setBillingBusy] = useState<null | "cancel" | "resume" | "portal">(null);
+  const [billingError, setBillingError] = useState<string | null>(null);
+  const [confirmCancel, setConfirmCancel] = useState(false);
   const plan = getPlan(membership?.planId);
   const activated = params.get("activated") === "1";
+  const subscription = membership?.subscriptionId ? membership : null;
+  const paymentProblem = !!subscription && (subscription.subscriptionStatus === "past_due" || subscription.status === "on_hold");
+
+  async function billing(action: "cancel" | "resume" | "portal") {
+    setBillingBusy(action);
+    setBillingError(null);
+    try {
+      if (action === "portal") await openBillingPortal(); // navigates away
+      else await setAutoRenew(action === "resume");
+      setConfirmCancel(false);
+    } catch (err) {
+      setBillingError(err instanceof Error ? err.message : "Something went wrong. Please try again.");
+    } finally {
+      if (action !== "portal") setBillingBusy(null);
+    }
+  }
 
   return (
     <div className="container-page flex max-w-3xl flex-col gap-6 py-10 sm:py-14">
@@ -116,36 +135,138 @@ export function AccountView() {
         <h2 className="flex items-center gap-2 text-lg font-semibold">
           <Crown className="h-5 w-5 text-amber-600" /> Membership
         </h2>
+        {paymentProblem && (
+          <div role="alert" className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+            <CircleAlert className="mt-0.5 h-5 w-5 shrink-0" />
+            <div className="text-sm leading-relaxed">
+              <p className="font-semibold">Your last renewal payment didn&apos;t go through</p>
+              <p>
+                {subscription?.status === "on_hold"
+                  ? "Premium is paused until the card is updated. Update it and we'll switch Premium back on."
+                  : "We'll try the card again shortly. Update it now to avoid losing Premium."}
+              </p>
+              <button type="button" onClick={() => billing("portal")} disabled={!!billingBusy} className="mt-2 font-semibold underline disabled:opacity-60">
+                {billingBusy === "portal" ? "Opening…" : "Update payment method"}
+              </button>
+            </div>
+          </div>
+        )}
         {isPremium && membership ? (
           <>
             <dl className="grid gap-4 sm:grid-cols-3">
               <div>
                 <dt className="text-sm text-muted">Plan</dt>
                 <dd className="font-semibold">{plan ? `Premium · ${plan.name}` : "Premium"}</dd>
+                {subscription && plan && (
+                  <dd className="text-sm text-muted">
+                    {formatMoney(plan.price, "EUR", 2)} {billingInterval(plan)}
+                  </dd>
+                )}
               </div>
               <div>
                 <dt className="text-sm text-muted">Started</dt>
                 <dd className="font-semibold">{formatDate(membership.startedAt)}</dd>
               </div>
               <div>
-                <dt className="text-sm text-muted">Active until</dt>
-                <dd className="font-semibold">{formatDate(membership.expiresAt)}</dd>
+                {subscription?.autoRenew ? (
+                  <>
+                    <dt className="text-sm text-muted">Renews on</dt>
+                    <dd className="font-semibold">{formatDate(subscription.nextBillingDate)}</dd>
+                  </>
+                ) : (
+                  <>
+                    <dt className="text-sm text-muted">{subscription ? "Ends on" : "Active until"}</dt>
+                    <dd className="font-semibold">
+                      {plan && !plan.recurring
+                        ? new Intl.DateTimeFormat("en-IE", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "Europe/Dublin" }).format(
+                            new Date(membership.expiresAt),
+                          )
+                        : formatDate(membership.expiresAt)}
+                    </dd>
+                    {subscription && <dd className="text-sm text-muted">Auto-renew is off</dd>}
+                  </>
+                )}
               </div>
             </dl>
-            <div className="flex flex-col gap-3 sm:flex-row">
-              <Link href="/premium" className="flex h-11 items-center justify-center rounded-xl bg-brand-600 px-5 font-display font-semibold text-white hover:bg-brand-700">
-                Extend membership
-              </Link>
-              {TEST_MODE && (
-                <button
-                  type="button"
-                  onClick={() => cancelMembership()}
-                  className="flex h-11 items-center justify-center rounded-xl border border-line px-5 text-sm font-semibold text-muted hover:bg-surface"
-                >
-                  Remove Premium (test)
-                </button>
-              )}
-            </div>
+
+            {subscription ? (
+              <div className="flex flex-col gap-3">
+                {confirmCancel ? (
+                  <div className="flex flex-col gap-3 rounded-xl border border-line bg-surface p-4">
+                    <p className="text-[15px] text-ink-2">
+                      Turn off auto-renew? You&apos;ll keep Premium until <span className="font-semibold">{formatDate(subscription.nextBillingDate)}</span> and
+                      won&apos;t be charged again.
+                    </p>
+                    <div className="flex flex-col gap-3 sm:flex-row">
+                      <button
+                        type="button"
+                        onClick={() => billing("cancel")}
+                        disabled={!!billingBusy}
+                        className="flex h-11 items-center justify-center rounded-xl bg-red-600 px-5 font-semibold text-white hover:bg-red-700 disabled:opacity-60"
+                      >
+                        {billingBusy === "cancel" ? "Cancelling…" : "Yes, cancel auto-renew"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setConfirmCancel(false)}
+                        className="flex h-11 items-center justify-center rounded-xl border border-line px-5 font-semibold text-ink-2 hover:bg-white"
+                      >
+                        Keep my plan
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3 sm:flex-row">
+                    {subscription.autoRenew ? (
+                      <button
+                        type="button"
+                        onClick={() => setConfirmCancel(true)}
+                        className="flex h-11 items-center justify-center rounded-xl border border-line px-5 font-semibold text-ink-2 hover:bg-surface"
+                      >
+                        Cancel auto-renew
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => billing("resume")}
+                        disabled={!!billingBusy}
+                        className="flex h-11 items-center justify-center rounded-xl bg-brand-600 px-5 font-display font-semibold text-white hover:bg-brand-700 disabled:opacity-60"
+                      >
+                        {billingBusy === "resume" ? "Turning on…" : "Turn auto-renew back on"}
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => billing("portal")}
+                      disabled={!!billingBusy}
+                      className="flex h-11 items-center justify-center rounded-xl border border-line px-5 font-semibold text-ink-2 hover:bg-surface disabled:opacity-60"
+                    >
+                      {billingBusy === "portal" ? "Opening…" : "Payment method & invoices"}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <Link href="/premium" className="flex h-11 items-center justify-center rounded-xl bg-brand-600 px-5 font-display font-semibold text-white hover:bg-brand-700">
+                  Switch to auto-renew
+                </Link>
+                {TEST_MODE && (
+                  <button
+                    type="button"
+                    onClick={() => cancelMembership()}
+                    className="flex h-11 items-center justify-center rounded-xl border border-line px-5 text-sm font-semibold text-muted hover:bg-surface"
+                  >
+                    Remove Premium (test)
+                  </button>
+                )}
+              </div>
+            )}
+            {billingError && (
+              <p role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">
+                {billingError}
+              </p>
+            )}
           </>
         ) : (
           <>

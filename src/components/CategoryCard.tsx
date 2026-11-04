@@ -22,7 +22,7 @@ export function CategoryCard({ category }: { category: Category }) {
       </div>
       <div className="relative">
         <h3 className="text-xl font-semibold text-ink group-hover:text-brand-600">{category.name}</h3>
-        <p className="mt-1.5 text-sm font-semibold text-brand-600">View jobs</p>
+        <p className="mt-1.5 text-sm font-semibold text-brand-600">{category.premium ? "View jobs" : "Free for everyone · View jobs"}</p>
       </div>
     </Link>
   );
@@ -35,10 +35,13 @@ export function CategoryCardFull({ category }: { category: Category }) {
       <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-brand-50 text-brand-600">
         <CategoryIcon icon={category.icon} className="h-6 w-6" />
       </span>
-      <h2 className="text-lg font-bold">
+      <h2 className="flex flex-wrap items-center gap-2 text-lg font-bold">
         <Link href={`/jobs?category=${category.slug}`} className="text-ink hover:text-brand-600">
           {category.name}
         </Link>
+        {!category.premium && (
+          <span className="rounded-full bg-brand-50 px-2.5 py-0.5 text-xs font-semibold text-brand-700">Free</span>
+        )}
       </h2>
       <div>
         <p className="text-xs font-semibold uppercase tracking-wider text-muted">Subcategories</p>

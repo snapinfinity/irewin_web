@@ -9,7 +9,7 @@ import { formatDate } from "@/lib/format";
 
 /** Plans are public; choosing one asks visitors who aren't logged in to sign in first. */
 export default function PremiumPage() {
-  const { user, isLoggedIn, isPremium, membership } = useSession();
+  const { user, isLoggedIn, isPremium, isSubscribed, membership } = useSession();
   const currentPlan = getPlan(membership?.planId);
   return (
     <>
@@ -26,9 +26,11 @@ export default function PremiumPage() {
                 : "Unlock every job in Ireland"}
           </h1>
           <p className="max-w-2xl text-on-dark sm:text-lg">
-            {isPremium && membership
-              ? `Your ${currentPlan ? `${currentPlan.name} ` : "Premium "}plan is active until ${formatDate(membership.expiresAt)}. You can extend it any time.`
-              : "Choose how long you'd like access. Every plan includes the same Premium features."}
+            {isSubscribed && membership
+              ? `Your ${currentPlan ? `${currentPlan.name} ` : "Premium "}plan renews automatically on ${formatDate(membership.nextBillingDate)}. You can cancel any time from My account.`
+              : isPremium && membership
+                ? `Your ${currentPlan ? `${currentPlan.name} ` : "Premium "}access runs until ${formatDate(membership.expiresAt)}. Pick a plan to keep Premium going automatically after that.`
+                : "Try Premium for an hour, or pick weekly or every 3 months. Weekly and 3-month plans renew automatically, and you can cancel any time."}
           </p>
           <ul className="mt-2 flex flex-wrap justify-center gap-x-6 gap-y-2 text-sm text-on-dark">
             {PREMIUM_BENEFITS.slice(0, 3).map((b) => (
@@ -40,13 +42,20 @@ export default function PremiumPage() {
         </div>
       </section>
       <section className="container-page py-12 sm:py-16">
-        <div className="mx-auto grid max-w-3xl gap-6 pt-3 sm:grid-cols-2">
+        <div className="mx-auto grid max-w-5xl gap-6 pt-3 sm:grid-cols-2 lg:grid-cols-3">
           {PLANS.map((p) => (
-            <PlanCard key={p.id} plan={p} current={isPremium} loggedIn={isLoggedIn} />
+            <PlanCard
+              key={p.id}
+              plan={p}
+              current={isPremium && !isSubscribed}
+              subscribed={isSubscribed}
+              activePlan={isSubscribed && membership?.planId === p.id}
+              loggedIn={isLoggedIn}
+            />
           ))}
         </div>
         <p className="mt-8 text-center text-sm text-muted">
-          Prices in euro.{" "}
+          Prices in euro, tax included. Cancel any time and keep Premium until the end of the period you&apos;ve paid for.{" "}
           <Link href="/jobs" className="font-semibold text-brand-600">
             Keep browsing jobs
           </Link>

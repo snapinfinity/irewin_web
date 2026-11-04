@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const [job, jobs] = await Promise.all([getPublishedJob(id), getPublishedJobs()]);
   if (!job) return { title: "Job not found" };
   // Locked jobs don't reveal their title in metadata.
-  return { title: getFreeJobIds(jobs).includes(id) ? `${job.title} – ${job.companyName}` : "Premium job" };
+  return { title: job.openAccess || getFreeJobIds(jobs).includes(id) ? `${job.title} – ${job.companyName}` : "Premium job" };
 }
 
 export default async function JobPage({ params }: { params: Promise<{ id: string }> }) {

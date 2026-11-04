@@ -2,6 +2,7 @@ import { cache } from "react";
 import { collection, doc, getDoc, getDocs, query, where, type DocumentData } from "firebase/firestore/lite";
 import { getDb, toIso } from "@/lib/firebase";
 import { FREE_JOB_PREVIEW_COUNT } from "@/lib/constants";
+import { getCategories } from "@/lib/data/categories";
 import type { Job } from "@/lib/types";
 
 /** Firestore job document (written by the admin dashboard) → plain object safe for client components. */
@@ -31,7 +32,13 @@ export function mapJob(id: string, d: DocumentData): Job {
     applicationUrl: d.applicationUrl ?? "",
     applicationDeadline: toIso(d.applicationDeadline),
     createdAt: toIso(d.createdAt) ?? new Date(0).toISOString(),
+    openAccess: false,
   };
+}
+
+/** Slugs of categories switched to free in the dashboard (every job in them is open to everyone). */
+async function freeCategorySlugs(): Promise<Set<string>> {
+  return new Set((await getCategories()).filter((c) => !c.premium).map((c) => c.slug));
 }
 
 /** All published, non-deleted jobs, newest first. */
@@ -39,10 +46,13 @@ export const getPublishedJobs = cache(async (): Promise<Job[]> => {
   try {
     // Both equality filters are required by the Firestore rules for public reads.
     // Sorting happens here, so no extra composite index is needed.
-    const snap = await getDocs(
-      query(collection(getDb(), "jobs"), where("status", "==", "published"), where("isDeleted", "==", false)),
-    );
-    return snap.docs.map((d) => mapJob(d.id, d.data())).sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+    const [snap, free] = await Promise.all([
+      getDocs(query(collection(getDb(), "jobs"), where("status", "==", "published"), where("isDeleted", "==", false))),
+      freeCategorySlugs(),
+    ]);
+    return snap.docs
+      .map((d) => ({ ...mapJob(d.id, d.data()), openAccess: free.has(String(d.data().category ?? "")) }))
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt));
   } catch (err) {
     console.error("[IREWIN] Failed to load jobs from Firestore:", err);
     return [];
@@ -56,18 +66,26 @@ export const getPublishedJob = cache(async (id: string): Promise<Job | null> => 
     if (!snap.exists()) return null;
     const data = snap.data();
     if (data.status !== "published" || data.isDeleted) return null;
-    return mapJob(snap.id, data);
+    const free = await freeCategorySlugs();
+    return { ...mapJob(snap.id, data), openAccess: free.has(String(data.category ?? "")) };
   } catch {
     // Rules deny reads of unpublished jobs → treat as not found.
     return null;
   }
 });
 
-/** The newest few jobs in each category are the free preview for visitors without Premium. `jobs` must be newest first. */
+/**
+ * Jobs visitors without Premium can see: every job in a free category, plus the
+ * newest few in each Premium category as a preview. `jobs` must be newest first.
+ */
 export function getFreeJobIds(jobs: Job[]): string[] {
   const perCategory = new Map<string, number>();
   const ids: string[] = [];
   for (const j of jobs) {
+    if (j.openAccess) {
+      ids.push(j.id);
+      continue;
+    }
     const seen = perCategory.get(j.category) ?? 0;
     if (seen < FREE_JOB_PREVIEW_COUNT) {
       ids.push(j.id);

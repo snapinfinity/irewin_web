@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowRight, Calendar, Lock, MapPin } from "lucide-react";
+import { AppliedBadge } from "@/components/AppliedBadge";
 import { Badge } from "@/components/Badge";
 import { CompanyLogo } from "@/components/CompanyLogo";
 import { EMPLOYMENT_TYPE_LABELS, EXPERIENCE_LEVEL_LABELS, WORK_MODE_LABELS } from "@/lib/constants";
@@ -19,7 +20,14 @@ export function JobCard({ job, free = false }: { job: Job; free?: boolean }) {
           <h3 className="text-[17px] font-semibold leading-snug text-ink group-hover:text-brand-600">{job.title}</h3>
           <p className="mt-0.5 truncate text-sm text-muted">{job.companyName}</p>
         </div>
-        {free && <Badge tone="gold" className="hidden sm:inline-flex">Free preview</Badge>}
+        <div className="flex shrink-0 flex-col items-end gap-1.5">
+          <AppliedBadge jobId={job.id} />
+          {free && (
+            <Badge tone="gold" className="hidden sm:inline-flex">
+              {job.openAccess ? "Free job" : "Free preview"}
+            </Badge>
+          )}
+        </div>
       </div>
       <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-sm text-muted">
         <span className="flex items-center gap-1.5">

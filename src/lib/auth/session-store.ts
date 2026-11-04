@@ -50,6 +50,10 @@ function toMembership(m: DocumentData | null | undefined): Membership | null {
     expiresAt: iso(m.expiresAt) ?? "",
     source: m.source ?? "test",
     paymentId: m.paymentId ?? null,
+    subscriptionId: m.subscriptionId ?? null,
+    subscriptionStatus: m.subscriptionStatus ?? null,
+    autoRenew: !!m.autoRenew,
+    nextBillingDate: iso(m.nextBillingDate),
   };
 }
 
@@ -228,9 +232,20 @@ export type ConfirmResult =
   | { status: "not_paid"; paymentStatus: string | null }
   | { status: "ignored"; reason: string };
 
-/** Asks the server to check a returned Dodo payment and apply it if it succeeded. */
-export function confirmPayment(paymentId: string) {
-  return postAsUser<ConfirmResult>("/api/checkout/confirm", { paymentId });
+/** Asks the server to check a returned Dodo subscription/payment and apply it if it's paid. */
+export function confirmPayment(ids: { subscriptionId?: string | null; paymentId?: string | null }) {
+  return postAsUser<ConfirmResult>("/api/checkout/confirm", ids);
+}
+
+/** Stop or restart auto-renew on the member's subscription. The live session picks up the new membership. */
+export function setAutoRenew(on: boolean) {
+  return postAsUser<unknown>("/api/subscription", { action: on ? "resume" : "cancel" });
+}
+
+/** Opens Dodo's customer portal (update card, see invoices). */
+export async function openBillingPortal() {
+  const { url } = await postAsUser<{ url: string }>("/api/subscription", { action: "portal" });
+  window.location.assign(url);
 }
 
 export async function cancelMembership() {
@@ -240,5 +255,5 @@ export async function cancelMembership() {
 }
 
 export function isMembershipActive(m: Membership | null): boolean {
-  return !!m && m.status !== "cancelled" && new Date(m.expiresAt).getTime() > Date.now();
+  return !!m && m.status === "active" && new Date(m.expiresAt).getTime() > Date.now();
 }

@@ -13,21 +13,21 @@ export function UnlockPanel({ compact = false }: { compact?: boolean }) {
         <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gold-soft text-amber-700">
           <Crown className="h-7 w-7" />
         </span>
-        <h3 className="text-2xl font-bold text-white sm:text-3xl">Unlock every job in Ireland</h3>
-        {!compact && (
+        <h3 className="text-2xl font-bold text-white sm:text-3xl">Pay your Platfoam fee unlock every job in Ireland</h3>
+        {/* {!compact && (
           <p className="text-base leading-relaxed text-on-dark">
             Premium members see every listing, full salary details, and can apply directly with the employer.
             {isLoggedIn ? " Choose a plan to get started." : " Choose a plan, then sign in with Google to activate it."}
           </p>
-        )}
+        )} */}
         <Link
           href="/premium"
           className="inline-flex items-center gap-2 rounded-xl bg-accent px-6 py-3.5 font-display text-base font-semibold text-dark hover:bg-accent-soft"
         >
           <LockOpen className="h-5 w-5" />
-          See Premium plans
+        Instead unlock
         </Link>
-        <p className="text-sm text-on-dark">Weekly or 3-month plans.</p>
+        {/* <p className="text-sm text-on-dark">Weekly or 3-month plans.</p> */}
       </div>
     </div>
   );

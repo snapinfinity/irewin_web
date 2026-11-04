@@ -6,21 +6,23 @@ import { useEffect, useState } from "react";
 import { CircleAlert, LoaderCircle } from "lucide-react";
 import { useSession } from "@/lib/auth/useSession";
 
-const FAILED = new Set(["failed", "cancelled"]);
+const FAILED = new Set(["failed", "cancelled", "expired"]);
 const RETRY_MS = 3000;
 const MAX_TRIES = 10;
 
 /**
- * Where Dodo sends the visitor back after checkout (?payment_id=…&status=…).
- * The URL status is only a hint: the server re-checks the payment with Dodo
- * and grants Premium. If there's no payment id, we wait for the webhook to
- * update the membership, which the live session picks up.
+ * Where Dodo sends the visitor back after checkout (?subscription_id=…&status=…,
+ * or ?payment_id=… for older one-off plans). The URL status is only a hint:
+ * the server re-checks with Dodo and grants Premium. If there's no id, we wait
+ * for the webhook to update the membership, which the live session picks up.
  */
 export function CheckoutSuccessView() {
   const params = useSearchParams();
   const router = useRouter();
   const { membership, confirmPayment } = useSession();
   const paymentId = params.get("payment_id");
+  const subscriptionId = params.get("subscription_id");
+  const checkoutId = subscriptionId ?? paymentId;
   const [outcome, setOutcome] = useState<"waiting" | "failed" | "slow">(
     FAILED.has(params.get("status") ?? "") ? "failed" : "waiting",
   );
@@ -30,13 +32,18 @@ export function CheckoutSuccessView() {
     // A Dodo-paid membership started in the last 15 minutes = this checkout landed (covers the webhook-only path).
     const paidNow =
       !!membership?.source.startsWith("dodo") &&
-      (paymentId ? membership.paymentId === paymentId : Date.now() - new Date(membership.startedAt).getTime() < 15 * 60_000);
+      membership.status === "active" &&
+      (subscriptionId
+        ? membership.subscriptionId === subscriptionId
+        : paymentId
+          ? membership.paymentId === paymentId
+          : Date.now() - new Date(membership.startedAt).getTime() < 15 * 60_000);
     if (paidNow) router.replace("/account?activated=1");
-  }, [membership, paymentId, router]);
+  }, [membership, paymentId, subscriptionId, router]);
 
   useEffect(() => {
     if (outcome !== "waiting") return;
-    if (!paymentId) {
+    if (!checkoutId) {
       const t = setTimeout(() => setOutcome("slow"), RETRY_MS * MAX_TRIES);
       return () => clearTimeout(t);
     }
@@ -44,7 +51,7 @@ export function CheckoutSuccessView() {
     let timer: ReturnType<typeof setTimeout>;
     const check = async (attempt: number) => {
       try {
-        const result = await confirmPayment(paymentId);
+        const result = await confirmPayment({ subscriptionId, paymentId });
         if (cancelled) return;
         if (result.status === "applied" || result.status === "already_applied") return; // the live session redirects
         if (result.status === "not_paid" && FAILED.has(result.paymentStatus ?? "")) return setOutcome("failed");
@@ -61,7 +68,7 @@ export function CheckoutSuccessView() {
       cancelled = true;
       clearTimeout(timer);
     };
-  }, [paymentId, outcome, confirmPayment]);
+  }, [checkoutId, subscriptionId, paymentId, outcome, confirmPayment]);
 
   return (
     <div className="container-page flex max-w-xl flex-col items-center gap-4 py-20 text-center">

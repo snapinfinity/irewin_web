@@ -20,6 +20,8 @@ export interface Category {
   slug: string;
   icon: string;
   subcategories: Subcategory[];
+  /** Set in the dashboard. true = Premium only (a few free previews); false = every job free for everyone. */
+  premium: boolean;
 }
 
 export interface Company {
@@ -55,29 +57,41 @@ export interface Job {
   applicationUrl: string;
   applicationDeadline: string | null;
   createdAt: string;
+  /** In a free (non-Premium) category: anyone can see it and apply. */
+  openAccess: boolean;
 }
 
-export type PlanId = "1w" | "3m";
+export type PlanId = "1h" | "1w" | "3m";
 
 export interface Plan {
   id: PlanId;
   name: string;
-  /** One purchase grants `count` × `period` of access. */
-  period: "week" | "month";
+  /** Each payment grants `count` × `period` of access. */
+  period: "hour" | "week" | "month";
   count: number;
   price: number;
+  /** true = auto-renewing Dodo subscription; false = one-off pass that just ends. */
+  recurring: boolean;
   badge?: string;
 }
 
 export interface Membership {
   planId: PlanId;
-  status: "active" | "cancelled";
+  /** "on_hold" = a renewal payment failed and Dodo stopped retrying; Premium is paused until the card is updated. */
+  status: "active" | "cancelled" | "on_hold";
   startedAt: string;
   expiresAt: string;
   /** "dodo_test" / "dodo" when paid through Dodo Payments; "test" for older manually activated memberships. */
   source: string;
-  /** Dodo payment id that granted/extended this membership. */
+  /** Dodo payment id that granted/extended this membership (one-off plans only). */
   paymentId: string | null;
+  /** Dodo subscription behind this membership; null for older one-off plans. */
+  subscriptionId: string | null;
+  /** Dodo's subscription status (active, past_due, on_hold, cancelled, expired…). */
+  subscriptionStatus: string | null;
+  /** true while the plan will charge again and renew on nextBillingDate. */
+  autoRenew: boolean;
+  nextBillingDate: string | null;
 }
 
 export type ReviewStatus = "pending" | "approved" | "rejected";
