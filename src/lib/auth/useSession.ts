@@ -10,6 +10,7 @@ import {
   openBillingPortal,
   setAutoRenew,
   setMarketingOptIn,
+  testSubscription,
   signInWithGoogle,
   signOut,
   startCheckout,
@@ -39,5 +40,6 @@ export function useSession() {
     cancelMembership,
     setAutoRenew,
     openBillingPortal,
+    testSubscription,
   };
 }

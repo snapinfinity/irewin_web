@@ -242,6 +242,11 @@ export function setAutoRenew(on: boolean) {
   return postAsUser<unknown>("/api/subscription", { action: on ? "resume" : "cancel" });
 }
 
+/** Test mode only: renew in 2 minutes / re-read the subscription from Dodo. */
+export function testSubscription(action: "test_renew_soon" | "refresh") {
+  return postAsUser<Record<string, unknown>>("/api/subscription", { action });
+}
+
 /** Opens Dodo's customer portal (update card, see invoices). */
 export async function openBillingPortal() {
   const { url } = await postAsUser<{ url: string }>("/api/subscription", { action: "portal" });

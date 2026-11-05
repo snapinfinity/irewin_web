@@ -3,13 +3,12 @@ import { addDays, addHours, addMonths, addWeeks, formatMoney } from "@/lib/forma
 
 /**
  * Premium plans. Recurring ones are auto-renewing subscriptions (charged `price`
- * every `count` × `period` until cancelled). The 1-hour and 1-day passes are one-off
- * payments that simply end.
+ * every `count` × `period` until cancelled). `recurring: false` plans (one-off passes) are
+ * still supported by the code but none are offered right now.
  * Keep `recurring` right after `price` — scripts/setup-dodo-products.mjs reads it.
  */
 export const PLANS: Plan[] = [
-  { id: "1h", name: "1 Hour", period: "hour", count: 1, price: 0.99, recurring: false, badge: "Try it" },
-  { id: "1d", name: "1 Day", period: "day", count: 1, price: 0.99, recurring: false },
+  { id: "1d", name: "Daily", period: "day", count: 1, price: 0.99, recurring: true, badge: "Try it" },
   { id: "1w", name: "Weekly", period: "week", count: 1, price: 1.99, recurring: true },
   { id: "3m", name: "3 Months", period: "month", count: 3, price: 19.99, recurring: true, badge: "Most popular" },
 ];

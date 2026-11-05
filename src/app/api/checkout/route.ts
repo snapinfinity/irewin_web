@@ -25,8 +25,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Payments aren't set up for this plan yet." }, { status: 500 });
   }
 
-  // One auto-renewing plan per member. Someone with whole days left on a one-off
-  // plan gets them as a free trial, so their first charge lands when it runs out.
+  // One auto-renewing plan per member.
   // A one-off pass bought while Premium is active is added on after it (applyPayment).
   const membership = (await adminDb().collection("users").doc(user.uid).get()).get("membership") as
     | { status?: string; expiresAt?: { toMillis(): number }; subscriptionId?: string; autoRenew?: boolean }
@@ -41,7 +40,9 @@ export async function POST(request: Request) {
   if (!plan.recurring && active) {
     return NextResponse.json({ error: `You already have Premium, so a ${plan.name} pass isn't needed. Check My account for your plan.` }, { status: 409 });
   }
-  const trialDays = plan.recurring && active && !membership?.subscriptionId ? Math.min(Math.floor((expiresAt - now) / DAY), 365) : 0;
+  // Paid time left that won't renew by itself (a one-off plan, or a subscription with auto-renew off):
+  // the new plan's first charge waits until it ends, so nobody pays twice for the same days.
+  const trialDays = plan.recurring && active && !membership?.autoRenew ? Math.min(Math.floor((expiresAt - now) / DAY), 365) : 0;
 
   const origin = process.env.SITE_URL ?? new URL(request.url).origin;
   try {
@@ -49,6 +50,12 @@ export async function POST(request: Request) {
       product_cart: [{ product_id: productId, quantity: 1 }],
       customer: { email: user.email ?? "", name: user.name ?? user.email ?? "IREWIN member" },
       metadata: { uid: user.uid, planId: plan.id },
+      // IREWIN is for Ireland: always charge in euro and start the billing country at Ireland
+      // (the customer can still change it). Without this, Dodo's adaptive pricing picks the
+      // country and currency from the visitor's location — e.g. India/INR, where recurring card
+      // payments need an RBI e-mandate and the subscription checkout fails.
+      billing_currency: "EUR",
+      billing_address: { country: "IE" },
       ...(trialDays > 0 ? { subscription_data: { trial_period_days: trialDays } } : {}),
       return_url: `${origin}/checkout/success`,
       cancel_url: `${origin}/checkout?plan=${plan.id}`,

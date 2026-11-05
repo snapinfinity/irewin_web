@@ -1,7 +1,7 @@
 // Creates the Dodo Payments product for each Premium plan and writes the ids
 // into the env file:
-//   recurring plans → subscription products  (DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M)
-//                     Weekly renews every week, 3 Months every 3 months, until cancelled.
+//   recurring plans → subscription products  (DODO_SUBSCRIPTION_1D, DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M)
+//                     Daily renews every day, Weekly every week, 3 Months every 3 months, until cancelled.
 //   one-off plans   → one-time products      (DODO_PRODUCT_1H, DODO_PRODUCT_1D: the 1-hour and 1-day passes)
 // Safe to run again: plans that already have a matching product (same plan,
 // price and billing interval) are reused.
@@ -32,7 +32,7 @@ const plans = [
   id,
   name,
   period,
-  interval: period === "week" ? "Week" : "Month",
+  interval: period === "day" ? "Day" : period === "week" ? "Week" : "Month",
   count: Number(count),
   cents: Math.round(Number(price) * 100),
   recurring: recurring === "true",

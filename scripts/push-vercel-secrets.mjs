@@ -2,13 +2,13 @@
 //
 //   node scripts/push-vercel-secrets.mjs
 //     DODO_PAYMENTS_API_KEY, DODO_PAYMENTS_WEBHOOK_KEY, RESEND_API_KEY  ← from .env.local (empty ones are skipped)
-//     DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M, DODO_PRODUCT_1H       ← from .env.local (test-mode plan products)
+//     DODO_SUBSCRIPTION_1D, DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M  ← from .env.local (test-mode plan products)
 //     FIREBASE_SERVICE_ACCOUNT_JSON                                     ← from ../irewin_dashboard/service-account.json
 //
 //   node scripts/push-vercel-secrets.mjs --live
 //     Switches Production to live Dodo payments, from .env.live.local:
 //     DODO_PAYMENTS_API_KEY, DODO_PAYMENTS_WEBHOOK_KEY (sensitive), DODO_PAYMENTS_ENVIRONMENT,
-//     DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_3M, DODO_PRODUCT_1H, DODO_PRODUCT_1D, NEXT_PUBLIC_DODO_TEST_MODE. All must be set, so
+//     DODO_SUBSCRIPTION_1W, DODO_SUBSCRIPTION_1D, DODO_SUBSCRIPTION_3M, NEXT_PUBLIC_DODO_TEST_MODE. All must be set, so
 //     Production is never left half test, half live.
 //
 // Values are sent to the Vercel CLI on stdin, never printed or put on the command line.
@@ -31,8 +31,7 @@ if (live) {
     ["DODO_PAYMENTS_ENVIRONMENT", false],
     ["DODO_SUBSCRIPTION_1W", false],
     ["DODO_SUBSCRIPTION_3M", false],
-    ["DODO_PRODUCT_1H", false],
-    ["DODO_PRODUCT_1D", false],
+    ["DODO_SUBSCRIPTION_1D", false],
     ["NEXT_PUBLIC_DODO_TEST_MODE", false],
   ];
   const missing = wanted.filter(([name]) => !read(name)).map(([name]) => name);
@@ -51,7 +50,7 @@ if (live) {
     if (value) vars.push([name, value, true]);
     else console.log(`- ${name} is empty in ${ENV_FILE}, skipped`);
   }
-  for (const name of ["DODO_SUBSCRIPTION_1W", "DODO_SUBSCRIPTION_3M", "DODO_PRODUCT_1H", "DODO_PRODUCT_1D"]) {
+  for (const name of ["DODO_SUBSCRIPTION_1D", "DODO_SUBSCRIPTION_1W", "DODO_SUBSCRIPTION_3M"]) {
     const value = read(name);
     if (value) vars.push([name, value, false]);
     else console.log(`- ${name} is empty in ${ENV_FILE}, skipped (run npm run dodo:setup first)`);

@@ -43,7 +43,7 @@ export function PremiumTeaser() {
               )}
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-3 gap-3 sm:gap-4">
             {PLANS.map((p) => (
               <div
                 key={p.id}
@@ -58,7 +58,7 @@ export function PremiumTeaser() {
                 <span className="text-sm text-on-dark">{p.count === 1 ? p.period : `${p.period}s`}</span>
               </div>
             ))}
-            <p className="col-span-2 text-center text-sm text-on-dark">
+            <p className="col-span-3 text-center text-sm text-on-dark">
               Pick the plan that suits you.
             </p>
           </div>

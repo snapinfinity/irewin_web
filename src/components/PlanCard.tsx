@@ -42,11 +42,17 @@ export function PlanCard({
       : current
         ? `Switch to ${plan.name}`
         : `Choose ${plan.name}`;
-  const blurb = !plan.recurring ? "Try Premium right now" : saving > 0 ? `Save ${saving}% vs weekly` : "Flexible, short term";
+  const blurb = !plan.recurring
+    ? "Try Premium right now"
+    : plan.period === "day"
+      ? "Try it day by day"
+      : saving > 0
+        ? `Save ${saving}% vs weekly`
+        : "Flexible, short term";
   const priceNote = !plan.recurring
     ? `one-off for ${planLength(plan)}`
-    : plan.period === "week" && plan.count === 1
-      ? "billed every week"
+    : plan.count === 1 && (plan.period === "day" || plan.period === "week")
+      ? `billed every ${plan.period}`
       : `${formatMoney(weeklyPrice(plan), "EUR", 2)} / week, billed ${billingInterval(plan)}`;
   const lastFeature = plan.recurring ? `Renews ${billingInterval(plan)} · cancel any time` : `${planLength(plan)} access · no renewal`;
   return (

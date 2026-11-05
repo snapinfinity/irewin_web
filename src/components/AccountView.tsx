@@ -14,7 +14,17 @@ const TEST_MODE = process.env.NEXT_PUBLIC_DODO_TEST_MODE !== "false";
 export function AccountView() {
   const params = useSearchParams();
   const router = useRouter();
-  const { user, profile, membership, isPremium, signOut, cancelMembership, setMarketingOptIn, setAutoRenew, openBillingPortal } = useSession();
+  const { user, profile, membership, isPremium, signOut, cancelMembership, setMarketingOptIn, setAutoRenew, openBillingPortal, testSubscription } = useSession();
+  const [testInfo, setTestInfo] = useState<string | null>(null);
+  async function runTest(action: "test_renew_soon" | "refresh") {
+    setTestInfo("Working…");
+    try {
+      const r = await testSubscription(action);
+      setTestInfo(JSON.stringify(r, null, 2));
+    } catch (err) {
+      setTestInfo(err instanceof Error ? err.message : String(err));
+    }
+  }
   const [savingPrefs, setSavingPrefs] = useState(false);
   const [billingBusy, setBillingBusy] = useState<null | "cancel" | "resume" | "portal">(null);
   const [billingError, setBillingError] = useState<string | null>(null);
@@ -260,6 +270,24 @@ export function AccountView() {
                     Remove Premium (test)
                   </button>
                 )}
+              </div>
+            )}
+            {TEST_MODE && subscription && (
+              <div className="flex flex-col gap-3 rounded-xl border border-dashed border-amber-300 bg-gold-soft p-4 text-amber-900">
+                <p className="text-sm font-semibold">Test mode: renewal check</p>
+                <p className="text-sm">
+                  &quot;Renew in 2 min&quot; makes Dodo charge the next renewal 2 minutes from now. Wait about 3 minutes, then press &quot;Refresh from Dodo&quot;:
+                  the previous billing date should move to today and &quot;Renews on&quot; should jump one billing period ahead.
+                </p>
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <button type="button" onClick={() => runTest("test_renew_soon")} className="h-10 rounded-lg border border-amber-400 bg-white px-4 text-sm font-semibold hover:bg-amber-50">
+                    Renew in 2 min (test)
+                  </button>
+                  <button type="button" onClick={() => runTest("refresh")} className="h-10 rounded-lg border border-amber-400 bg-white px-4 text-sm font-semibold hover:bg-amber-50">
+                    Refresh from Dodo
+                  </button>
+                </div>
+                {testInfo && <pre className="overflow-x-auto whitespace-pre-wrap rounded-lg bg-white p-3 text-xs text-ink-2">{testInfo}</pre>}
               </div>
             )}
             {billingError && (

@@ -25,7 +25,7 @@ export function dodo(): DodoPayments {
   return client;
 }
 
-/** One-time Dodo product per plan: the 1-hour pass, plus the older one-off Weekly/3 Months products (only to recognise old payments). */
+/** Older one-time Dodo products (1-hour/1-day passes, one-off Weekly/3 Months) — only to recognise payments made with them. */
 export function productIdFor(planId: PlanId): string | undefined {
   const ids: Record<PlanId, string | undefined> = {
     "1h": process.env.DODO_PRODUCT_1H,
@@ -36,11 +36,11 @@ export function productIdFor(planId: PlanId): string | undefined {
   return ids[planId];
 }
 
-/** Recurring Dodo product per plan (npm run dodo:setup creates them): Weekly renews every week, 3 Months every 3 months. */
+/** Recurring Dodo product per plan (npm run dodo:setup creates them): Daily renews every day, Weekly every week, 3 Months every 3 months. */
 export function subscriptionProductIdFor(planId: PlanId): string | undefined {
   const ids: Record<PlanId, string | undefined> = {
-    "1h": undefined, // one-off passes, never subscriptions
-    "1d": undefined,
+    "1h": undefined, // the old 1-hour pass was one-off only
+    "1d": process.env.DODO_SUBSCRIPTION_1D,
     "1w": process.env.DODO_SUBSCRIPTION_1W,
     "3m": process.env.DODO_SUBSCRIPTION_3M,
   };
@@ -168,8 +168,14 @@ export async function syncSubscription(subscriptionId: string, opts: { hintUid?:
   return db.runTransaction<SyncResult>(async (tx) => {
     const userSnap = await tx.get(userRef);
     if (!userSnap.exists) throw new Error(`users/${uid} not found for subscription ${sub.subscription_id}`);
-    const current = userSnap.get("membership") as { subscriptionId?: string; startedAt?: Timestamp } | null;
+    const current = userSnap.get("membership") as
+      | { subscriptionId?: string; startedAt?: Timestamp; autoRenew?: boolean; status?: string; expiresAt?: Timestamp }
+      | null;
     const sameSub = current?.subscriptionId === sub.subscription_id;
+    // Two subscriptions can overlap (an old plan with auto-renew off runs out while the new one starts).
+    // The membership follows the auto-renewing one; an ending plan never replaces it.
+    const currentRenews = !!current?.autoRenew && current.status === "active" && (current.expiresAt?.toMillis() ?? 0) > now;
+    const yieldsToCurrent = !sameSub && currentRenews && !autoRenew;
 
     tx.set(
       subRef,
@@ -193,7 +199,7 @@ export async function syncSubscription(subscriptionId: string, opts: { hintUid?:
     );
 
     // An old, ended subscription must never overwrite a different, current membership.
-    if (!sameSub && !grantsAccess) {
+    if ((!sameSub && !grantsAccess) || yieldsToCurrent) {
       return { status: "synced", subscriptionStatus: sub.status, active: false, expiresAt: null };
     }
 
@@ -214,6 +220,24 @@ export async function syncSubscription(subscriptionId: string, opts: { hintUid?:
     });
     return { status: "synced", subscriptionStatus: sub.status, active: grantsAccess, expiresAt: expiresAt.toDate().toISOString() };
   });
+}
+
+/**
+ * Re-syncs every active subscription this customer has in Dodo (newest last), not just the one on
+ * their membership — so a new plan is picked up even if its return page or webhook never arrived.
+ */
+export async function syncAllSubscriptions(uid: string, customerId: string): Promise<SyncResult[]> {
+  const subs: Subscription[] = [];
+  for await (const s of dodo().subscriptions.list({ customer_id: customerId, status: "active" })) {
+    subs.push(s as unknown as Subscription);
+  }
+  subs.sort((a, b) => a.created_at.localeCompare(b.created_at));
+  const results: SyncResult[] = [];
+  for (const s of subs) {
+    if ((await resolveUid(s, null)) !== uid) continue; // never touch someone else's subscription
+    results.push(await syncSubscription(s.subscription_id, { hintUid: uid }));
+  }
+  return results;
 }
 
 /** The subscription on this user's membership, verified to belong to them. */

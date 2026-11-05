@@ -125,7 +125,13 @@ export function CheckoutView() {
           </span>
           <div>
             <p className="font-display font-semibold">Premium · {plan.name}</p>
-            <p className="text-sm text-muted">{oneOff ? `${planLength(plan)} access` : `${formatMoney(weeklyPrice(plan), "EUR", 2)} / week`}</p>
+            <p className="text-sm text-muted">
+              {oneOff
+                ? `${planLength(plan)} access`
+                : plan.period === "day"
+                  ? `${formatMoney(plan.price, "EUR", 2)} / day`
+                  : `${formatMoney(weeklyPrice(plan), "EUR", 2)} / week`}
+            </p>
           </div>
         </div>
         <dl className="flex flex-col gap-2 text-[15px]">
